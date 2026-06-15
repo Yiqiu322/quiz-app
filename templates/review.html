@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🎯 {{ subject_name }} — 刷题</title>
+<style>
+    /* ── Reset & Base ── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
+        background: #F2EFEA;
+        color: #2C3E50;
+        padding: 0;
+        min-height: 100vh;
+    }
+
+    /* ── Top Bar ── */
+    .topbar {
+        background: #3A7D5C;
+        color: white;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    .topbar a { color: white; text-decoration: none; font-size: 22px; }
+    .topbar .title { flex: 1; font-size: 15px; font-weight: bold; }
+    .topbar .progress { font-size: 13px; opacity: 0.85; }
+
+    /* ── Question Card ── */
+    .card {
+        background: #FAF8F4;
+        border: 1px solid #D8D2C6;
+        border-radius: 12px;
+        margin: 12px 12px 0;
+        padding: 20px;
+    }
+    .stem {
+        font-size: 17px; font-weight: bold;
+        line-height: 1.6; color: #2C3E50;
+        white-space: pre-wrap; word-break: break-word;
+    }
+    .stem-img {
+        max-width: 100%; height: auto;
+        border-radius: 8px; margin-top: 10px;
+        display: block;
+    }
+
+    /* ── Meta Badge ── */
+    .meta-bar {
+        display: flex; gap: 8px; margin: 10px 12px 0;
+        flex-wrap: wrap;
+    }
+    .badge {
+        font-size: 12px; padding: 4px 12px; border-radius: 20px;
+        background: #F4F1EB; color: #6B7B8D;
+    }
+    .badge.wrong { background: #FDF0EE; color: #D4786A; }
+    .badge.star { background: #FDF8EE; color: #D4A86A; cursor: pointer; }
+
+    /* ── Options ── */
+    .options { margin: 8px 12px 0; display: flex; flex-direction: column; gap: 8px; }
+    .option-btn {
+        display: block;
+        width: 100%;
+        background: #FAF8F4;
+        border: 2px solid #D8D2C6;
+        border-radius: 12px;
+        padding: 14px 16px;
+        font-size: 16px;
+        text-align: left;
+        color: #2C3E50;
+        cursor: pointer;
+        transition: all 0.12s;
+        font-family: inherit;
+        line-height: 1.4;
+    }
+    .option-btn:active { transform: scale(0.98); }
+    .option-btn .letter {
+        display: inline-block;
+        width: 28px; height: 28px; line-height: 28px;
+        text-align: center; border-radius: 50%;
+        background: #F4F1EB; color: #5B7B7A;
+        font-weight: bold; font-size: 14px;
+        margin-right: 10px;
+    }
+    .option-btn.selected {
+        border-color: #3A7D5C; background: #EDF7F0;
+    }
+    .option-btn.selected .letter { background: #3A7D5C; color: white; }
+    .option-btn.correct {
+        border-color: #6AAF7B; background: #EDF7F0;
+    }
+    .option-btn.correct .letter { background: #6AAF7B; color: white; }
+    .option-btn.wrong {
+        border-color: #D4786A; background: #FDF0EE;
+    }
+    .option-btn.wrong .letter { background: #D4786A; color: white; }
+    .option-btn.disabled { opacity: 0.7; cursor: default; }
+    .option-btn:disabled { cursor: default; }
+
+    /* ── Feedback ── */
+    .feedback {
+        margin: 8px 12px 0;
+        padding: 14px 16px;
+        border-radius: 12px;
+        font-size: 16px; font-weight: bold;
+        text-align: center;
+        display: none;
+    }
+    .feedback.show { display: block; }
+    .feedback.correct { background: #EDF7F0; color: #3A7D5C; }
+    .feedback.wrong { background: #FDF0EE; color: #D4786A; }
+    .feedback .detail { font-size: 13px; font-weight: normal; margin-top: 4px; opacity: 0.8; }
+
+    /* ── Next Button ── */
+    .next-btn-wrap { margin: 12px 12px 20px; }
+    .next-btn {
+        width: 100%;
+        background: #3A7D5C; color: white;
+        border: none; border-radius: 12px;
+        padding: 16px; font-size: 17px; font-weight: bold;
+        cursor: pointer; transition: all 0.12s;
+        font-family: inherit;
+        display: none;
+    }
+    .next-btn:active { transform: scale(0.97); }
+    .next-btn.show { display: block; }
+
+    /* ── Empty State ── */
+    .empty-state { text-align: center; padding: 60px 20px; color: #6B7B8D; }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; margin-bottom: 20px; }
+    .back-btn {
+        display: inline-block;
+        background: #3A7D5C; color: white;
+        padding: 12px 32px; border-radius: 12px;
+        text-decoration: none; font-size: 15px;
+    }
+
+    /* ── Completion ── */
+    .completion { text-align: center; padding: 40px 20px; }
+    .completion .emoji { font-size: 48px; }
+    .completion h2 { font-size: 22px; margin: 12px 0 8px; color: #3A7D5C; }
+    .completion p { font-size: 14px; color: #6B7B8D; line-height: 1.8; }
+
+    /* ── Loading ── */
+    .loading { text-align: center; padding: 40px; color: #6B7B8D; }
+
+    @media (min-width: 768px) {
+        body { max-width: 600px; margin: 0 auto; }
+    }
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar">
+    <a href="/" id="backLink">‹</a>
+    <span class="title">{{ subject_name }}</span>
+    <span class="progress" id="progressText">0/0</span>
+</div>
+
+{% if msg %}
+<!-- 无题目提示 -->
+<div class="empty-state">
+    <div class="icon">📭</div>
+    <p>{{ msg }}</p>
+    <a href="/" class="back-btn">← 返回首页</a>
+</div>
+{% else %}
+
+<!-- 元信息 -->
+<div class="meta-bar" id="metaBar">
+    <span class="badge" id="wrongBadge"></span>
+    <span class="badge star" id="starBtn" onclick="toggleStar()">☆ 星标</span>
+</div>
+
+<!-- 题目卡片 -->
+<div class="card" id="questionCard">
+    <div class="stem" id="stemText"></div>
+    <div id="stemImages"></div>
+</div>
+
+<!-- 选项列表 -->
+<div class="options" id="optionsContainer"></div>
+
+<!-- 反馈 -->
+<div class="feedback" id="feedback"></div>
+
+<!-- 下一题按钮 -->
+<div class="next-btn-wrap">
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">⏭ 下一题 →</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════
+//  核心数据
+// ══════════════════════════════════════════════════════════════════════
+
+const questions = {{ questions_json | tojson | safe }};
+let currentIndex = 0;
+let answered = false;
+let correctCount = 0;
+let totalAnswered = 0;
+
+// 选项映射（用于打乱选项后仍能正确判断）
+let currentMapping = [];
+
+// ══════════════════════════════════════════════════════════════════════
+//  显示题目
+// ══════════════════════════════════════════════════════════════════════
+
+function showQuestion(index) {
+    if (index >= questions.length) {
+        showCompletion();
+        return;
+    }
+    currentIndex = index;
+    answered = false;
+    const q = questions[index];
+
+    // 进度
+    document.getElementById('progressText').textContent = `${index + 1}/${questions.length}`;
+
+    // 题干
+    const stem = document.getElementById('stemText');
+    stem.textContent = q.stem;
+
+    // 元信息
+    const wrongBadge = document.getElementById('wrongBadge');
+    if (q.wrong_count > 0) {
+        wrongBadge.textContent = `❌ 已错 ${q.wrong_count} 次`;
+        wrongBadge.className = 'badge wrong';
+    } else {
+        wrongBadge.textContent = '';
+    }
+
+    const starBtn = document.getElementById('starBtn');
+    starBtn.textContent = q.starred ? '⭐ 已星标' : '☆ 星标';
+
+    // 构建选项
+    const options = q.options;
+    let items = Object.entries(options); // [["A","文本"], ["B","文本"], ...]
+
+    // 随机打乱选项（如果开启了）
+    {% if shuffle_o %}
+    if (items.length > 2) {
+        // Fisher-Yates shuffle
+        for (let i = items.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [items[i], items[j]] = [items[j], items[i]];
+        }
+    }
+    {% endif %}
+
+    // 建立映射
+    currentMapping = [];
+    const container = document.getElementById('optionsContainer');
+    container.innerHTML = '';
+    const displayLetters = ['A', 'B', 'C', 'D'];
+
+    items.forEach(([origKey, text], idx) => {
+        const displayLabel = displayLetters[idx];
+        currentMapping.push([displayLabel, origKey]);
+
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerHTML = `<span class="letter">${displayLabel}</span>${text}`;
+        btn.dataset.display = displayLabel;
+        btn.onclick = () => selectOption(displayLabel);
+        container.appendChild(btn);
+    });
+
+    // 重置UI
+    document.getElementById('feedback').className = 'feedback';
+    document.getElementById('feedback').style.display = 'none';
+    document.getElementById('nextBtn').className = 'next-btn';
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  选择选项 + 提交
+// ══════════════════════════════════════════════════════════════════════
+
+function selectOption(displayLabel) {
+    if (answered) return;
+
+    // 高亮选中
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.display === displayLabel);
+    });
+
+    // 立即提交判定
+    submitAnswer(displayLabel);
+}
+
+function submitAnswer(displayLabel) {
+    answered = true;
+    const q = questions[currentIndex];
+
+    // 通过映射找到原始选项字母
+    let selectedOriginal = displayLabel;
+    for (const [disp, orig] of currentMapping) {
+        if (disp === displayLabel) {
+            selectedOriginal = orig;
+            break;
+        }
+    }
+
+    fetch('/api/submit', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({question_id: q.id, answer: selectedOriginal})
+    })
+    .then(r => r.json())
+    .then(result => {
+        totalAnswered++;
+        const isCorrect = result.correct;
+        if (isCorrect) correctCount++;
+
+        // 标记选项颜色
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('disabled');
+            const display = btn.dataset.display;
+            // 找出原始key
+            let orig = display;
+            for (const [disp, key] of currentMapping) {
+                if (disp === display) { orig = key; break; }
+            }
+            if (orig === result.correct_answer) {
+                btn.classList.add('correct');
+            }
+            if (display === displayLabel && !isCorrect) {
+                btn.classList.add('wrong');
+            }
+        });
+
+        // 反馈
+        const fb = document.getElementById('feedback');
+        if (isCorrect) {
+            fb.className = 'feedback correct show';
+            fb.innerHTML = '✅ 回答正确！';
+        } else {
+            fb.className = 'feedback wrong show';
+            fb.innerHTML = `❌ 回答错误<br><span class="detail">正确答案：${result.correct_answer}. ${result.correct_text}</span>`;
+        }
+        if (result.wrong_count > 0) {
+            fb.innerHTML += `<span class="detail">（已错 ${result.wrong_count} 次）</span>`;
+        }
+
+        // 显示下一题按钮
+        const nextBtn = document.getElementById('nextBtn');
+        nextBtn.className = 'next-btn show';
+        if (currentIndex >= questions.length - 1) {
+            nextBtn.textContent = '📊 查看成绩';
+        } else {
+            nextBtn.textContent = '⏭ 下一题 →';
+        }
+    })
+    .catch(() => {
+        alert('提交失败，请检查网络连接');
+        answered = false;
+    });
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  下一题 / 完成
+// ══════════════════════════════════════════════════════════════════════
+
+function nextQuestion() {
+    const next = currentIndex + 1;
+    if (next >= questions.length) {
+        showCompletion();
+    } else {
+        showQuestion(next);
+    }
+}
+
+function showCompletion() {
+    const pct = totalAnswered > 0 ? Math.round(correctCount / totalAnswered * 100) : 0;
+    document.getElementById('questionCard').innerHTML = `
+        <div class="completion">
+            <div class="emoji">🎉</div>
+            <h2>刷题完成！</h2>
+            <p>
+                📝 共 ${questions.length} 道题<br>
+                ✅ 正确：${correctCount} 道<br>
+                ❌ 错误：${totalAnswered - correctCount} 道<br>
+                🎯 正确率：${pct}%
+            </p>
+        </div>
+    `;
+    document.getElementById('optionsContainer').innerHTML = '';
+    document.getElementById('feedback').style.display = 'none';
+    document.getElementById('nextBtn').className = 'next-btn';
+    document.getElementById('metaBar').innerHTML = '';
+    document.getElementById('progressText').textContent = '已完成';
+    document.getElementById('backLink').innerHTML = '‹ 返回';
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  星标切换
+// ══════════════════════════════════════════════════════════════════════
+
+function toggleStar() {
+    const q = questions[currentIndex];
+    if (!q) return;
+    fetch('/api/toggle_star', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({question_id: q.id})
+    })
+    .then(r => r.json())
+    .then(data => {
+        q.starred = data.starred;
+        const btn = document.getElementById('starBtn');
+        btn.textContent = data.starred ? '⭐ 已星标' : '☆ 星标';
+    })
+    .catch(() => {});
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  键盘快捷键
+// ══════════════════════════════════════════════════════════════════════
+
+document.addEventListener('keydown', function(e) {
+    const key = e.key.toUpperCase();
+    if (['A','B','C','D'].includes(key)) {
+        const btns = document.querySelectorAll('.option-btn');
+        const idx = ['A','B','C','D'].indexOf(key);
+        if (btns[idx] && !btns[idx].disabled) {
+            btns[idx].click();
+        }
+    }
+    if (key === 'ENTER' || key === 'ARROWRIGHT' || key === ' ') {
+        const nextBtn = document.getElementById('nextBtn');
+        if (nextBtn.className.includes('show')) {
+            nextBtn.click();
+        }
+    }
+});
+
+// ══════════════════════════════════════════════════════════════════════
+//  启动
+// ══════════════════════════════════════════════════════════════════════
+
+showQuestion(0);
+</script>
+{% endif %}
+</body>
+</html>

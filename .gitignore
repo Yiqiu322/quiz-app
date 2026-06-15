@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# 数据库（手机端应该从头建）
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# 本地配置
+.window_geometry.json
+*.local
+
+# 图片（保留目录结构）
+images/*.png
+images/*.jpg
+images/*.jpeg
+images/*.gif
+images/*.bmp
+!images/.gitkeep
+
+# Android SDK（Buildozer 自动下载）
+.buildozer/
+bin/
+
+# 系统
+.DS_Store
+Thumbs.db

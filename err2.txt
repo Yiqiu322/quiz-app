@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    exec(open('main.py').read())
+         ~~~~~~~~~~~~~~~~~~~~^^
+UnicodeDecodeError: 'gbk' codec can't decode byte 0x94 in position 14: illegal multibyte sequence
