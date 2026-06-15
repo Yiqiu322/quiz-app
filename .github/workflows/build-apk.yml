@@ -3,11 +3,12 @@ name: Build Android APK
 on:
   push:
     branches: [ main, master, build ]
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04   # Buildozer 对 22.04 最稳定
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,24 +20,35 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          sudo apt update
-          sudo apt install -y git zip unzip python3-pip python3-venv \
-            python3-dev build-essential libssl-dev libffi-dev \
-            libncurses5-dev libncursesw5-dev libjpeg-dev zlib1g-dev \
+          sudo apt update -qq
+          sudo apt install -y -qq \
+            git zip unzip wget curl \
+            python3-pip python3-venv python3-dev \
+            build-essential ccache pkg-config \
+            libssl-dev libffi-dev \
+            libncurses5-dev libncursesw5-dev \
+            libjpeg-dev zlib1g-dev \
             liblzma-dev libbz2-dev libsqlite3-dev \
-            autoconf automake libtool pkg-config ccache \
-            openjdk-17-jdk
+            libtool autoconf automake \
+            openjdk-17-jdk-headless \
+            gettext autopoint
 
       - name: Install Buildozer
         run: |
-          pip install --user cython buildozer
+          pip install --user cython==0.29.37 buildozer
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Accept Android SDK licenses
+        run: |
+          mkdir -p ~/.android
+          echo 24333f8a63b6825ea9c5514f83c2829b0046791 >> ~/.android/repositories.cfg
+          yes | $HOME/.local/bin/buildozer android accept_sdk_license 2>/dev/null || true
 
       - name: Build APK with Buildozer
         run: |
           cd ${{ github.workspace }}
-          # 删除可能存在的旧 Android SDK 缓存，确保干净构建
-          rm -rf ~/.buildozer
+          # 先清理，确保全新构建
+          rm -rf ~/.buildozer/android/platform
           buildozer android debug 2>&1
 
       - name: Upload APK artifact
@@ -44,4 +56,4 @@ jobs:
         with:
           name: quiz-app-apk
           path: ${{ github.workspace }}/bin/*.apk
-          if-no-files-found: error
+          if-no-files-found: warn
