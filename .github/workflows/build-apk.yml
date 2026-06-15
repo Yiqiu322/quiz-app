@@ -31,7 +31,8 @@ jobs:
             liblzma-dev libbz2-dev libsqlite3-dev \
             libtool autoconf automake \
             openjdk-17-jdk-headless \
-            gettext autopoint
+            gettext autopoint \
+            python-is-python3
 
       - name: Install Buildozer
         run: |
@@ -47,9 +48,18 @@ jobs:
       - name: Build APK with Buildozer
         run: |
           cd ${{ github.workspace }}
-          # 先清理，确保全新构建
           rm -rf ~/.buildozer/android/platform
-          buildozer android debug 2>&1
+          buildozer android debug 2>&1 | tee buildozer_output.log
+
+      - name: Upload Buildozer log (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildozer-log
+          path: |
+            ${{ github.workspace }}/buildozer_output.log
+            ~/.buildozer/android/platform/build*/buildozer*.log
+          if-no-files-found: continue
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4

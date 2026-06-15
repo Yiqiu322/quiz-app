@@ -6,7 +6,7 @@ source.dir = .
 source.main = mobile_app.py
 source.include_exts = py,png,jpg,kv,db
 version = 1.0
-requirements = python3,kivy
+requirements = python3,kivy==2.3.1,sqlite3,openssl,requests
 orientation = portrait
 osx.python_version = 3
 osx.kivy_version = 2.3.1
