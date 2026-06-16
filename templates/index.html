@@ -144,7 +144,7 @@
 {% if subjects %}
     {% for s in subjects %}
     {% set st = stats|selectattr("subject_id", "equalto", s.id)|first %}
-    <a href="/review/{{ s.id }}" class="subject-card">
+    <a href="/review/{{ s.id }}?shuffle_o=1" class="subject-card">
         <div class="subject-top">
             <span class="subject-name">{{ s.name }}</span>
             <span class="subject-arrow">›</span>

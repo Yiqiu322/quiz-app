@@ -144,6 +144,9 @@
 <div class="meta-bar" id="metaBar">
     <span class="badge" id="wrongBadge"></span>
     <button class="star-btn" id="starBtn" onclick="toggleStar()">☆ 星标</button>
+    <button class="star-btn" id="shuffleBtn" onclick="toggleShuffle()" style="margin-left:auto;">
+        🔀 <span id="shuffleLabel">开</span>
+    </button>
 </div>
 
 <div class="card" id="questionCard">
@@ -163,6 +166,12 @@
 const questions = {{ questions_json | tojson | safe }};
 let idx = 0, answered = false, correct = 0, total = 0;
 let mapping = [];
+let shuffleOn = true;
+
+function toggleShuffle() {
+    shuffleOn = !shuffleOn;
+    document.getElementById('shuffleLabel').textContent = shuffleOn ? '开' : '关';
+}
 
 function showQuestion(index) {
     if (index >= questions.length) { showCompletion(); return; }
@@ -188,9 +197,11 @@ function showQuestion(index) {
 
     // Options
     const opts = Object.entries(q.options);
-    for (let i = opts.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        [opts[i], opts[j]] = [opts[j], opts[i]];
+    if (shuffleOn) {
+        for (let i = opts.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            [opts[i], opts[j]] = [opts[j], opts[i]];
+        }
     }
 
     mapping = [];
