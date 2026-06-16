@@ -10,91 +10,105 @@
 <meta name="apple-mobile-web-app-title" content="刷题">
 <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
 <style>
-    /* ── Reset & Base ── */
+    :root {
+        --bg: #F2EFEA;
+        --card: #FAF8F4;
+        --card-hover: #F4F1EB;
+        --border: #D8D2C6;
+        --text: #2C3E50;
+        --muted: #6B7B8D;
+        --primary: #3A7D5C;
+        --primary-light: #EDF7F0;
+        --secondary: #5B7B7A;
+        --success: #6AAF7B;
+        --error: #D4786A;
+        --error-bg: #FDF0EE;
+        --shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
-        background: #F2EFEA;
-        color: #2C3E50;
+        background: var(--bg);
+        color: var(--text);
         padding: 16px;
         min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
     }
 
     /* ── Header ── */
-    .header {
-        text-align: center;
-        padding: 20px 0 16px;
-    }
-    .header h1 { font-size: 22px; color: #2C3E50; }
-    .header p { font-size: 13px; color: #6B7B8D; margin-top: 4px; }
+    .header { text-align: center; padding: 24px 0 20px; }
+    .header h1 { font-size: 26px; color: var(--primary); letter-spacing: 1px; }
+    .header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
 
-    /* ── Stats Card ── */
-    .stats-card {
-        background: #FAF8F4;
-        border: 1px solid #D8D2C6;
-        border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 16px;
-        display: flex;
-        justify-content: space-around;
-        text-align: center;
+    /* ── Stats Cards ── */
+    .stats-row { display: flex; gap: 10px; margin-bottom: 16px; }
+    .stat-card {
+        flex: 1; background: var(--card); border-radius: 14px;
+        padding: 14px 8px; text-align: center;
+        box-shadow: var(--shadow); border: 1px solid var(--border);
     }
-    .stat-item { flex: 1; }
-    .stat-num { font-size: 26px; font-weight: bold; color: #3A7D5C; }
-    .stat-label { font-size: 12px; color: #6B7B8D; margin-top: 2px; }
-
-    /* ── Subject List ── */
-    .section-title {
-        font-size: 16px; font-weight: bold;
-        color: #2C3E50; margin: 16px 0 10px;
-        display: flex; justify-content: space-between; align-items: center;
-    }
-    .section-title .badge {
-        font-size: 12px; font-weight: normal;
-        color: #6B7B8D; background: #F4F1EB;
-        padding: 2px 10px; border-radius: 10px;
-    }
-
-    .subject-item {
-        background: #FAF8F4;
-        border: 1px solid #D8D2C6;
-        border-radius: 12px;
-        padding: 14px 16px;
-        margin-bottom: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        text-decoration: none;
-        color: #2C3E50;
-        transition: all 0.15s;
-    }
-    .subject-item:active { background: #F4F1EB; transform: scale(0.98); }
-    .subject-name { font-size: 16px; font-weight: 500; }
-    .subject-meta { font-size: 12px; color: #6B7B8D; margin-top: 4px; }
-    .subject-arrow { font-size: 18px; color: #B8B0A0; }
-    .subject-badges { display: flex; gap: 4px; margin-top: 4px; }
-    .badge-wrong { font-size: 11px; color: #D4786A; background: #FDF0EE; padding: 1px 8px; border-radius: 8px; }
-    .badge-star { font-size: 11px; color: #D4A86A; background: #FDF8EE; padding: 1px 8px; border-radius: 8px; }
-
-    /* ── Empty State ── */
-    .empty-state { text-align: center; padding: 40px 16px; color: #6B7B8D; }
-    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-    .empty-state p { font-size: 14px; }
+    .stat-num { font-size: 24px; font-weight: 800; }
+    .stat-num.green { color: var(--primary); }
+    .stat-num.blue { color: var(--secondary); }
+    .stat-num.orange { color: #D4A86A; }
+    .stat-label { font-size: 11px; color: var(--muted); margin-top: 3px; }
 
     /* ── Quick Actions ── */
-    .quick-actions {
-        display: flex; gap: 10px; margin-bottom: 16px;
-    }
+    .quick-actions { display: flex; gap: 10px; margin-bottom: 18px; }
     .quick-btn {
-        flex: 1;
-        background: #3A7D5C; color: white;
-        border: none; border-radius: 12px;
-        padding: 14px; font-size: 15px; font-weight: bold;
-        text-align: center; text-decoration: none;
-        cursor: pointer; transition: all 0.15s;
+        flex: 1; display: block; text-align: center; text-decoration: none;
+        background: var(--primary); color: white; border: none; border-radius: 14px;
+        padding: 16px; font-size: 16px; font-weight: 700;
+        box-shadow: var(--shadow); transition: all 0.15s; cursor: pointer;
     }
     .quick-btn:active { transform: scale(0.97); opacity: 0.9; }
-    .quick-btn.alt { background: #5B7B7A; }
+    .quick-btn.alt { background: var(--secondary); }
+
+    /* ── Section ── */
+    .section-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin: 20px 0 10px;
+    }
+    .section-header h2 { font-size: 16px; font-weight: 700; color: var(--text); }
+    .section-header span { font-size: 12px; color: var(--muted); background: var(--card-hover);
+        padding: 2px 10px; border-radius: 10px; }
+
+    /* ── Subject Card ── */
+    .subject-card {
+        display: block; text-decoration: none; color: var(--text);
+        background: var(--card); border: 1px solid var(--border);
+        border-radius: 14px; padding: 16px; margin-bottom: 10px;
+        box-shadow: var(--shadow); transition: all 0.15s;
+    }
+    .subject-card:active { transform: scale(0.98); background: var(--card-hover); }
+    .subject-top { display: flex; justify-content: space-between; align-items: center; }
+    .subject-name { font-size: 16px; font-weight: 600; }
+    .subject-arrow { font-size: 20px; color: #B8B0A0; }
+    .subject-meta { font-size: 12px; color: var(--muted); margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .subject-meta .tag { padding: 1px 8px; border-radius: 8px; font-size: 11px; }
+    .tag-green { background: var(--primary-light); color: var(--primary); }
+    .tag-red { background: var(--error-bg); color: var(--error); }
+    .tag-gold { background: #FDF8EE; color: #D4A86A; }
+
+    /* ── Sub-links (wrong/star) ── */
+    .sub-links { display: flex; gap: 8px; margin-top: 10px; }
+    .sub-link {
+        flex: 1; text-align: center; text-decoration: none; font-size: 12px;
+        padding: 8px; border-radius: 10px; background: var(--card-hover);
+        color: var(--muted); transition: all 0.15s;
+    }
+    .sub-link:active { transform: scale(0.97); }
+    .sub-link.wrong { color: var(--error); }
+    .sub-link.star { color: #D4A86A; }
+
+    /* ── Empty ── */
+    .empty { text-align: center; padding: 48px 16px; color: var(--muted); }
+    .empty .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty p { font-size: 14px; }
+
+    /* ── Footer ── */
+    .footer { text-align: center; padding: 32px 0 16px; font-size: 12px; color: #B8B0A0; }
 
     /* ── Desktop ── */
     @media (min-width: 768px) {
@@ -109,112 +123,56 @@
     <p>随时随地，想刷就刷</p>
 </div>
 
-<!-- 总览统计 -->
-<div class="stats-card">
-    <div class="stat-item">
-        <div class="stat-num">{{ total_qs }}</div>
-        <div class="stat-label">总题数</div>
-    </div>
-    <div class="stat-item">
-        <div class="stat-num">{{ total_answered }}</div>
-        <div class="stat-label">已答题</div>
-    </div>
-    <div class="stat-item">
-        <div class="stat-num">{{ overall_acc }}%</div>
-        <div class="stat-label">正确率</div>
-    </div>
+<!-- 统计卡片 -->
+<div class="stats-row">
+    <div class="stat-card"><div class="stat-num green">{{ total_qs }}</div><div class="stat-label">总题数</div></div>
+    <div class="stat-card"><div class="stat-num blue">{{ total_answered }}</div><div class="stat-label">已答题</div></div>
+    <div class="stat-card"><div class="stat-num orange">{{ overall_acc }}%</div><div class="stat-label">正确率</div></div>
 </div>
 
 <!-- 快速操作 -->
 <div class="quick-actions">
     <a href="/quick10" class="quick-btn">⚡ 刷 10 题</a>
-    <a href="/stats" class="quick-btn alt" onclick="showStats(event)">📊 统计</a>
 </div>
 
 <!-- 学科列表 -->
-<div class="section-title">
-    <span>📚 学科列表</span>
-    <span class="badge">{{ subjects|length }} 个学科</span>
+<div class="section-header">
+    <h2>📚 学科</h2>
+    <span>{{ subjects|length }} 个</span>
 </div>
 
 {% if subjects %}
     {% for s in subjects %}
-    {% set sub_stats = stats|selectattr("subject_id", "equalto", s.id)|first %}
-    <a href="/review/{{ s.id }}?shuffle_q=1&shuffle_o=1" class="subject-item">
-        <div>
-            <div class="subject-name">{{ s.name }}</div>
-            <div class="subject-meta">
-                {{ sub_stats.total if sub_stats else '?' }} 题
-                {% if sub_stats and sub_stats.answered > 0 %}
-                · 正确率 {{ sub_stats.accuracy }}%
-                {% endif %}
-            </div>
-            {% if sub_stats and sub_stats.wrong_total > 0 %}
-            <div class="subject-badges">
-                <span class="badge-wrong">❌{{ sub_stats.wrong_total }} 错</span>
-            </div>
-            {% endif %}
+    {% set st = stats|selectattr("subject_id", "equalto", s.id)|first %}
+    <a href="/review/{{ s.id }}" class="subject-card">
+        <div class="subject-top">
+            <span class="subject-name">{{ s.name }}</span>
+            <span class="subject-arrow">›</span>
         </div>
-        <div class="subject-arrow">›</div>
+        <div class="subject-meta">
+            <span>{{ st.total if st else '?' }} 题</span>
+            {% if st and st.answered > 0 %}<span>| 正确率 {{ st.accuracy }}%</span>{% endif %}
+            {% if st and st.wrong_total > 0 %}<span class="tag tag-red">❌{{ st.wrong_total }}</span>{% endif %}
+            {% if st and st.answered == 0 %}<span class="tag tag-green">未开始</span>{% endif %}
+        </div>
     </a>
+    <div class="sub-links">
+        <a href="/review/{{ s.id }}?wrong=1" class="sub-link wrong">❌ 错题</a>
+        <a href="/review/{{ s.id }}?star=1" class="sub-link star">⭐ 星标</a>
+    </div>
     {% endfor %}
 {% else %}
-    <div class="empty-state">
+    <div class="empty">
         <div class="icon">📥</div>
-        <p>还没有学科，先去桌面端录入题目吧！</p>
+        <p>还没有学科，<br>先去桌面端录入题目吧！</p>
     </div>
 {% endif %}
 
-<!-- 刷题模式按钮 -->
-{% if subjects %}
-<div class="section-title" style="margin-top:24px;">
-    <span>🎯 专项刷题</span>
-</div>
-{% for s in subjects %}
-    {% set has_wrong = db.get_wrong_questions(s.id) if False else False %}
-    <a href="/review/{{ s.id }}?wrong=1" class="subject-item" style="border-left: 3px solid #D4786A;">
-        <div>
-            <div class="subject-name">❌ {{ s.name }} · 错题重练</div>
-            <div class="subject-meta">只看做过且答错的题</div>
-        </div>
-        <div class="subject-arrow">›</div>
-    </a>
-    <a href="/review/{{ s.id }}?star=1" class="subject-item" style="border-left: 3px solid #D4A86A;">
-        <div>
-            <div class="subject-name">⭐ {{ s.name }} · 星标题</div>
-            <div class="subject-meta">只看标记了星标的题</div>
-        </div>
-        <div class="subject-arrow">›</div>
-    </a>
-{% endfor %}
-{% endif %}
-
-<div style="text-align:center; padding: 24px 0 12px; font-size:12px; color:#B8B0A0;">
-    数据与桌面端共享 · 在电脑上录入，在手机上刷题
-</div>
+<div class="footer">数据与桌面端共享 · 电脑录入，手机刷题</div>
 
 <script>
-// 注册 PWA Service Worker
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
-}
-</script>
-<script>
-function showStats(e) {
-    e.preventDefault();
-    fetch('/api/stats')
-        .then(r => r.json())
-        .then(data => {
-            let text = '📊 学习统计\n' + '─'.repeat(20) + '\n';
-            text += `总题数：${data.total_questions}\n`;
-            text += `已答题：${data.total_answered} 次\n`;
-            text += `正确率：${data.overall_accuracy}%\n\n`;
-            data.subjects.forEach(s => {
-                text += `📚 ${s.subject_name}: ${s.accuracy}%\n`;
-            });
-            alert(text);
-        })
-        .catch(() => alert('加载统计失败'));
 }
 </script>
 </body>

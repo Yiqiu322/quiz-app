@@ -3,169 +3,137 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>🎯 {{ subject_name }} — 刷题</title>
+<title>{{ subject_name }} — 刷题</title>
 <style>
-    /* ── Reset & Base ── */
+    :root {
+        --bg: #F2EFEA; --card: #FAF8F4; --border: #D8D2C6;
+        --text: #2C3E50; --muted: #6B7B8D;
+        --primary: #3A7D5C; --primary-light: #EDF7F0;
+        --success: #6AAF7B; --error: #D4786A; --error-bg: #FDF0EE;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
-        background: #F2EFEA;
-        color: #2C3E50;
-        padding: 0;
-        min-height: 100vh;
+        background: var(--bg); color: var(--text); min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
     }
 
     /* ── Top Bar ── */
     .topbar {
-        background: #3A7D5C;
-        color: white;
-        padding: 12px 16px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        position: sticky;
-        top: 0;
-        z-index: 10;
+        background: var(--primary); color: white; padding: 14px 16px;
+        display: flex; align-items: center; gap: 12px;
+        position: sticky; top: 0; z-index: 10;
     }
-    .topbar a { color: white; text-decoration: none; font-size: 22px; }
-    .topbar .title { flex: 1; font-size: 15px; font-weight: bold; }
+    .topbar a { color: white; text-decoration: none; font-size: 24px; line-height: 1; }
+    .topbar .title { flex: 1; font-size: 15px; font-weight: 600; }
     .topbar .progress { font-size: 13px; opacity: 0.85; }
 
-    /* ── Question Card ── */
-    .card {
-        background: #FAF8F4;
-        border: 1px solid #D8D2C6;
-        border-radius: 12px;
-        margin: 12px 12px 0;
-        padding: 20px;
-    }
-    .stem {
-        font-size: 17px; font-weight: bold;
-        line-height: 1.6; color: #2C3E50;
-        white-space: pre-wrap; word-break: break-word;
-    }
-    .stem-img {
-        max-width: 100%; height: auto;
-        border-radius: 8px; margin-top: 10px;
-        display: block;
-    }
+    /* ── Progress Bar ── */
+    .progress-bar-wrap { height: 4px; background: rgba(255,255,255,0.2); }
+    .progress-bar-fill { height: 100%; background: white; transition: width 0.3s; border-radius: 0 2px 2px 0; }
 
-    /* ── Meta Badge ── */
-    .meta-bar {
-        display: flex; gap: 8px; margin: 10px 12px 0;
-        flex-wrap: wrap;
-    }
-    .badge {
-        font-size: 12px; padding: 4px 12px; border-radius: 20px;
-        background: #F4F1EB; color: #6B7B8D;
-    }
-    .badge.wrong { background: #FDF0EE; color: #D4786A; }
-    .badge.star { background: #FDF8EE; color: #D4A86A; cursor: pointer; }
+    /* ── Meta ── */
+    .meta-bar { display: flex; gap: 8px; padding: 10px 16px 0; flex-wrap: wrap; }
+    .badge { font-size: 12px; padding: 3px 12px; border-radius: 20px; background: var(--border); color: var(--muted); }
+    .badge-wrong { background: var(--error-bg); color: var(--error); }
+    .star-btn { font-size: 12px; padding: 3px 12px; border-radius: 20px; border: none;
+        cursor: pointer; background: var(--border); color: var(--muted); font-family: inherit; }
+    .star-btn.active { background: #FDF8EE; color: #D4A86A; }
+
+    /* ── Question Card ── */
+    .card { background: var(--card); border: 1px solid var(--border);
+        border-radius: 14px; margin: 12px 12px 0; padding: 20px 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .stem { font-size: 17px; font-weight: 600; line-height: 1.7;
+        white-space: pre-wrap; word-break: break-word; }
+    .stem-img { max-width: 100%; height: auto; border-radius: 8px; margin-top: 10px; display: block; }
 
     /* ── Options ── */
-    .options { margin: 8px 12px 0; display: flex; flex-direction: column; gap: 8px; }
+    .options { margin: 10px 12px 0; display: flex; flex-direction: column; gap: 8px; }
     .option-btn {
-        display: block;
-        width: 100%;
-        background: #FAF8F4;
-        border: 2px solid #D8D2C6;
-        border-radius: 12px;
-        padding: 14px 16px;
-        font-size: 16px;
-        text-align: left;
-        color: #2C3E50;
-        cursor: pointer;
-        transition: all 0.12s;
-        font-family: inherit;
-        line-height: 1.4;
+        display: flex; align-items: center; gap: 12px; width: 100%;
+        background: var(--card); border: 2px solid var(--border);
+        border-radius: 14px; padding: 14px 16px; font-size: 16px;
+        text-align: left; color: var(--text); cursor: pointer;
+        transition: all 0.15s; font-family: inherit; line-height: 1.4;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
     .option-btn:active { transform: scale(0.98); }
     .option-btn .letter {
-        display: inline-block;
-        width: 28px; height: 28px; line-height: 28px;
-        text-align: center; border-radius: 50%;
-        background: #F4F1EB; color: #5B7B7A;
-        font-weight: bold; font-size: 14px;
-        margin-right: 10px;
+        width: 30px; height: 30px; line-height: 30px; text-align: center;
+        border-radius: 50%; background: var(--bg); color: var(--primary);
+        font-weight: 700; font-size: 14px; flex-shrink: 0;
+        transition: all 0.15s;
     }
-    .option-btn.selected {
-        border-color: #3A7D5C; background: #EDF7F0;
-    }
-    .option-btn.selected .letter { background: #3A7D5C; color: white; }
-    .option-btn.correct {
-        border-color: #6AAF7B; background: #EDF7F0;
-    }
-    .option-btn.correct .letter { background: #6AAF7B; color: white; }
-    .option-btn.wrong {
-        border-color: #D4786A; background: #FDF0EE;
-    }
-    .option-btn.wrong .letter { background: #D4786A; color: white; }
-    .option-btn.disabled { opacity: 0.7; cursor: default; }
-    .option-btn:disabled { cursor: default; }
+    .option-btn.selected { border-color: var(--primary); background: var(--primary-light); }
+    .option-btn.selected .letter { background: var(--primary); color: white; }
+    .option-btn.correct { border-color: var(--success); background: var(--primary-light); border-width: 2px; }
+    .option-btn.correct .letter { background: var(--success); color: white; }
+    .option-btn.wrong { border-color: var(--error); background: var(--error-bg); border-width: 2px; }
+    .option-btn.wrong .letter { background: var(--error); color: white; }
 
     /* ── Feedback ── */
-    .feedback {
-        margin: 8px 12px 0;
-        padding: 14px 16px;
-        border-radius: 12px;
-        font-size: 16px; font-weight: bold;
-        text-align: center;
-        display: none;
-    }
-    .feedback.show { display: block; }
-    .feedback.correct { background: #EDF7F0; color: #3A7D5C; }
-    .feedback.wrong { background: #FDF0EE; color: #D4786A; }
+    .feedback { margin: 8px 12px 0; padding: 14px 16px; border-radius: 12px;
+        font-size: 16px; font-weight: 700; text-align: center; display: none; }
+    .feedback.show { display: block; animation: fadeIn 0.2s; }
+    .feedback.correct { background: var(--primary-light); color: var(--primary); }
+    .feedback.wrong { background: var(--error-bg); color: var(--error); }
     .feedback .detail { font-size: 13px; font-weight: normal; margin-top: 4px; opacity: 0.8; }
 
     /* ── Next Button ── */
-    .next-btn-wrap { margin: 12px 12px 20px; }
+    .next-wrap { margin: 12px 12px 24px; }
     .next-btn {
-        width: 100%;
-        background: #3A7D5C; color: white;
-        border: none; border-radius: 12px;
-        padding: 16px; font-size: 17px; font-weight: bold;
-        cursor: pointer; transition: all 0.12s;
-        font-family: inherit;
-        display: none;
+        width: 100%; background: var(--primary); color: white;
+        border: none; border-radius: 14px; padding: 16px;
+        font-size: 17px; font-weight: 700; cursor: pointer;
+        transition: all 0.15s; font-family: inherit; display: none;
+        box-shadow: 0 2px 8px rgba(58,125,92,0.3);
     }
+    .next-btn.show { display: block; animation: fadeIn 0.2s; }
     .next-btn:active { transform: scale(0.97); }
-    .next-btn.show { display: block; }
-
-    /* ── Empty State ── */
-    .empty-state { text-align: center; padding: 60px 20px; color: #6B7B8D; }
-    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-    .empty-state p { font-size: 15px; margin-bottom: 20px; }
-    .back-btn {
-        display: inline-block;
-        background: #3A7D5C; color: white;
-        padding: 12px 32px; border-radius: 12px;
-        text-decoration: none; font-size: 15px;
-    }
 
     /* ── Completion ── */
-    .completion { text-align: center; padding: 40px 20px; }
-    .completion .emoji { font-size: 48px; }
-    .completion h2 { font-size: 22px; margin: 12px 0 8px; color: #3A7D5C; }
-    .completion p { font-size: 14px; color: #6B7B8D; line-height: 1.8; }
-
-    /* ── Loading ── */
-    .loading { text-align: center; padding: 40px; color: #6B7B8D; }
-
-    @media (min-width: 768px) {
-        body { max-width: 600px; margin: 0 auto; }
+    .completion { text-align: center; padding: 32px 16px; }
+    .completion .emoji { font-size: 56px; margin-bottom: 8px; }
+    .completion h2 { font-size: 24px; color: var(--primary); margin-bottom: 16px; }
+    .completion .result-grid { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+    .completion .result-item {
+        background: var(--card); border: 1px solid var(--border);
+        border-radius: 12px; padding: 14px 18px; min-width: 80px;
     }
+    .completion .result-item .num { font-size: 28px; font-weight: 800; }
+    .completion .result-item .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .completion .result-item .num.green { color: var(--success); }
+    .completion .result-item .num.red { color: var(--error); }
+    .completion .result-item .num.orange { color: #D4A86A; }
+    .completion .back-btn {
+        display: inline-block; background: var(--primary); color: white;
+        padding: 14px 40px; border-radius: 14px; text-decoration: none;
+        font-size: 16px; font-weight: 600; margin-top: 8px;
+    }
+
+    /* ── Empty ── */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; margin-bottom: 20px; }
+    .back-btn { display: inline-block; background: var(--primary); color: white;
+        padding: 12px 32px; border-radius: 12px; text-decoration: none; font-size: 15px; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (min-width: 768px) { body { max-width: 600px; margin: 0 auto; } }
 </style>
 </head>
 <body>
 
-<div class="topbar" id="topbar">
+<div class="topbar">
     <a href="/" id="backLink">‹</a>
     <span class="title">{{ subject_name }}</span>
     <span class="progress" id="progressText">0/0</span>
 </div>
+<div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
 
 {% if msg %}
-<!-- 无题目提示 -->
 <div class="empty-state">
     <div class="icon">📭</div>
     <p>{{ msg }}</p>
@@ -173,225 +141,149 @@
 </div>
 {% else %}
 
-<!-- 元信息 -->
 <div class="meta-bar" id="metaBar">
     <span class="badge" id="wrongBadge"></span>
-    <span class="badge star" id="starBtn" onclick="toggleStar()">☆ 星标</span>
+    <button class="star-btn" id="starBtn" onclick="toggleStar()">☆ 星标</button>
 </div>
 
-<!-- 题目卡片 -->
 <div class="card" id="questionCard">
     <div class="stem" id="stemText"></div>
     <div id="stemImages"></div>
 </div>
 
-<!-- 选项列表 -->
 <div class="options" id="optionsContainer"></div>
 
-<!-- 反馈 -->
 <div class="feedback" id="feedback"></div>
 
-<!-- 下一题按钮 -->
-<div class="next-btn-wrap">
+<div class="next-wrap">
     <button class="next-btn" id="nextBtn" onclick="nextQuestion()">⏭ 下一题 →</button>
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════════════════
-//  核心数据
-// ══════════════════════════════════════════════════════════════════════
-
 const questions = {{ questions_json | tojson | safe }};
-let currentIndex = 0;
-let answered = false;
-let correctCount = 0;
-let totalAnswered = 0;
-
-// 选项映射（用于打乱选项后仍能正确判断）
-let currentMapping = [];
-
-// ══════════════════════════════════════════════════════════════════════
-//  显示题目
-// ══════════════════════════════════════════════════════════════════════
+let idx = 0, answered = false, correct = 0, total = 0;
+let mapping = [];
 
 function showQuestion(index) {
-    if (index >= questions.length) {
-        showCompletion();
-        return;
-    }
-    currentIndex = index;
-    answered = false;
+    if (index >= questions.length) { showCompletion(); return; }
+    idx = index; answered = false;
     const q = questions[index];
 
-    // 进度
-    document.getElementById('progressText').textContent = `${index + 1}/${questions.length}`;
+    document.getElementById('progressText').textContent = `${index+1}/${questions.length}`;
+    document.getElementById('progressBar').style.width = `${((index)/questions.length)*100}%`;
 
-    // 题干
-    const stem = document.getElementById('stemText');
-    stem.textContent = q.stem;
+    // Stem
+    document.getElementById('stemText').textContent = q.stem;
+    document.getElementById('stemImages').innerHTML = '';
 
-    // 元信息
-    const wrongBadge = document.getElementById('wrongBadge');
-    if (q.wrong_count > 0) {
-        wrongBadge.textContent = `❌ 已错 ${q.wrong_count} 次`;
-        wrongBadge.className = 'badge wrong';
-    } else {
-        wrongBadge.textContent = '';
+    // Wrong badge
+    const wb = document.getElementById('wrongBadge');
+    wb.textContent = q.wrong_count > 0 ? `❌ 已错 ${q.wrong_count} 次` : '';
+    wb.className = q.wrong_count > 0 ? 'badge badge-wrong' : 'badge';
+
+    // Star
+    const sb = document.getElementById('starBtn');
+    sb.textContent = q.starred ? '⭐ 已星标' : '☆ 星标';
+    sb.className = q.starred ? 'star-btn active' : 'star-btn';
+
+    // Options
+    const opts = Object.entries(q.options);
+    for (let i = opts.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [opts[i], opts[j]] = [opts[j], opts[i]];
     }
 
-    const starBtn = document.getElementById('starBtn');
-    starBtn.textContent = q.starred ? '⭐ 已星标' : '☆ 星标';
-
-    // 构建选项
-    const options = q.options;
-    let items = Object.entries(options); // [["A","文本"], ["B","文本"], ...]
-
-    // 随机打乱选项（如果开启了）
-    {% if shuffle_o %}
-    if (items.length > 2) {
-        // Fisher-Yates shuffle
-        for (let i = items.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [items[i], items[j]] = [items[j], items[i]];
-        }
-    }
-    {% endif %}
-
-    // 建立映射
-    currentMapping = [];
+    mapping = [];
     const container = document.getElementById('optionsContainer');
     container.innerHTML = '';
-    const displayLetters = ['A', 'B', 'C', 'D'];
+    const letters = ['A','B','C','D'];
 
-    items.forEach(([origKey, text], idx) => {
-        const displayLabel = displayLetters[idx];
-        currentMapping.push([displayLabel, origKey]);
-
+    opts.forEach(([orig, text], i) => {
+        const dl = letters[i];
+        mapping.push([dl, orig]);
         const btn = document.createElement('button');
         btn.className = 'option-btn';
-        btn.innerHTML = `<span class="letter">${displayLabel}</span>${text}`;
-        btn.dataset.display = displayLabel;
-        btn.onclick = () => selectOption(displayLabel);
+        btn.innerHTML = `<span class="letter">${dl}</span><span>${text}</span>`;
+        btn.dataset.display = dl;
+        btn.onclick = () => selectOption(dl);
         container.appendChild(btn);
     });
 
-    // 重置UI
     document.getElementById('feedback').className = 'feedback';
     document.getElementById('feedback').style.display = 'none';
     document.getElementById('nextBtn').className = 'next-btn';
 }
 
-// ══════════════════════════════════════════════════════════════════════
-//  选择选项 + 提交
-// ══════════════════════════════════════════════════════════════════════
-
-function selectOption(displayLabel) {
+function selectOption(dl) {
     if (answered) return;
-
-    // 高亮选中
-    document.querySelectorAll('.option-btn').forEach(btn => {
-        btn.classList.toggle('selected', btn.dataset.display === displayLabel);
-    });
-
-    // 立即提交判定
-    submitAnswer(displayLabel);
-}
-
-function submitAnswer(displayLabel) {
     answered = true;
-    const q = questions[currentIndex];
+    const q = questions[idx];
 
-    // 通过映射找到原始选项字母
-    let selectedOriginal = displayLabel;
-    for (const [disp, orig] of currentMapping) {
-        if (disp === displayLabel) {
-            selectedOriginal = orig;
-            break;
-        }
-    }
+    // Map display → original
+    let orig = dl;
+    for (const [d, o] of mapping) { if (d === dl) { orig = o; break; } }
 
+    document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+
+    // Submit
     fetch('/api/submit', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({question_id: q.id, answer: selectedOriginal})
+        body: JSON.stringify({question_id: q.id, answer: orig})
     })
     .then(r => r.json())
-    .then(result => {
-        totalAnswered++;
-        const isCorrect = result.correct;
-        if (isCorrect) correctCount++;
+    .then(res => {
+        total++;
+        if (res.correct) correct++;
 
-        // 标记选项颜色
+        // Color buttons
         document.querySelectorAll('.option-btn').forEach(btn => {
-            btn.disabled = true;
-            btn.classList.add('disabled');
-            const display = btn.dataset.display;
-            // 找出原始key
-            let orig = display;
-            for (const [disp, key] of currentMapping) {
-                if (disp === display) { orig = key; break; }
-            }
-            if (orig === result.correct_answer) {
-                btn.classList.add('correct');
-            }
-            if (display === displayLabel && !isCorrect) {
-                btn.classList.add('wrong');
-            }
+            let o = btn.dataset.display;
+            for (const [d, k] of mapping) { if (d === o) { o = k; break; } }
+            if (o === res.correct_answer) btn.classList.add('correct');
+            if (btn.dataset.display === dl && !res.correct) btn.classList.add('wrong');
         });
 
-        // 反馈
+        // Feedback
         const fb = document.getElementById('feedback');
-        if (isCorrect) {
+        if (res.correct) {
             fb.className = 'feedback correct show';
             fb.innerHTML = '✅ 回答正确！';
         } else {
             fb.className = 'feedback wrong show';
-            fb.innerHTML = `❌ 回答错误<br><span class="detail">正确答案：${result.correct_answer}. ${result.correct_text}</span>`;
+            fb.innerHTML = `❌ 回答错误<br><span class="detail">正确答案：${res.correct_answer}. ${res.correct_text}</span>`;
         }
-        if (result.wrong_count > 0) {
-            fb.innerHTML += `<span class="detail">（已错 ${result.wrong_count} 次）</span>`;
+        if (res.wrong_count > 0) {
+            fb.innerHTML += `<span class="detail">（已错 ${res.wrong_count} 次）</span>`;
         }
 
-        // 显示下一题按钮
-        const nextBtn = document.getElementById('nextBtn');
-        nextBtn.className = 'next-btn show';
-        if (currentIndex >= questions.length - 1) {
-            nextBtn.textContent = '📊 查看成绩';
-        } else {
-            nextBtn.textContent = '⏭ 下一题 →';
-        }
+        // Next button
+        const nb = document.getElementById('nextBtn');
+        nb.className = 'next-btn show';
+        nb.textContent = idx >= questions.length - 1 ? '📊 查看成绩' : '⏭ 下一题 →';
     })
-    .catch(() => {
-        alert('提交失败，请检查网络连接');
-        answered = false;
-    });
+    .catch(() => { answered = false; alert('提交失败，请重试'); });
 }
 
-// ══════════════════════════════════════════════════════════════════════
-//  下一题 / 完成
-// ══════════════════════════════════════════════════════════════════════
-
 function nextQuestion() {
-    const next = currentIndex + 1;
-    if (next >= questions.length) {
-        showCompletion();
-    } else {
-        showQuestion(next);
-    }
+    if (idx + 1 >= questions.length) { showCompletion(); }
+    else { showQuestion(idx + 1); }
 }
 
 function showCompletion() {
-    const pct = totalAnswered > 0 ? Math.round(correctCount / totalAnswered * 100) : 0;
+    const pct = total > 0 ? Math.round(correct / total * 100) : 0;
+    const wrong = total - correct;
+    document.getElementById('progressBar').style.width = '100%';
     document.getElementById('questionCard').innerHTML = `
         <div class="completion">
             <div class="emoji">🎉</div>
             <h2>刷题完成！</h2>
-            <p>
-                📝 共 ${questions.length} 道题<br>
-                ✅ 正确：${correctCount} 道<br>
-                ❌ 错误：${totalAnswered - correctCount} 道<br>
-                🎯 正确率：${pct}%
-            </p>
+            <div class="result-grid">
+                <div class="result-item"><div class="num green">${correct}</div><div class="lbl">✅ 正确</div></div>
+                <div class="result-item"><div class="num red">${wrong}</div><div class="lbl">❌ 错误</div></div>
+                <div class="result-item"><div class="num orange">${pct}%</div><div class="lbl">🎯 正确率</div></div>
+            </div>
+            <a href="/" class="back-btn">← 返回首页</a>
         </div>
     `;
     document.getElementById('optionsContainer').innerHTML = '';
@@ -402,51 +294,30 @@ function showCompletion() {
     document.getElementById('backLink').innerHTML = '‹ 返回';
 }
 
-// ══════════════════════════════════════════════════════════════════════
-//  星标切换
-// ══════════════════════════════════════════════════════════════════════
-
 function toggleStar() {
-    const q = questions[currentIndex];
-    if (!q) return;
+    const q = questions[idx]; if (!q) return;
     fetch('/api/toggle_star', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({question_id: q.id})
-    })
-    .then(r => r.json())
-    .then(data => {
-        q.starred = data.starred;
-        const btn = document.getElementById('starBtn');
-        btn.textContent = data.starred ? '⭐ 已星标' : '☆ 星标';
-    })
-    .catch(() => {});
+    }).then(r => r.json()).then(d => {
+        q.starred = d.starred;
+        const sb = document.getElementById('starBtn');
+        sb.textContent = d.starred ? '⭐ 已星标' : '☆ 星标';
+        sb.className = d.starred ? 'star-btn active' : 'star-btn';
+    }).catch(() => {});
 }
 
-// ══════════════════════════════════════════════════════════════════════
-//  键盘快捷键
-// ══════════════════════════════════════════════════════════════════════
-
-document.addEventListener('keydown', function(e) {
-    const key = e.key.toUpperCase();
-    if (['A','B','C','D'].includes(key)) {
-        const btns = document.querySelectorAll('.option-btn');
-        const idx = ['A','B','C','D'].indexOf(key);
-        if (btns[idx] && !btns[idx].disabled) {
-            btns[idx].click();
-        }
-    }
-    if (key === 'ENTER' || key === 'ARROWRIGHT' || key === ' ') {
-        const nextBtn = document.getElementById('nextBtn');
-        if (nextBtn.className.includes('show')) {
-            nextBtn.click();
-        }
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+    const k = e.key.toUpperCase();
+    const btns = document.querySelectorAll('.option-btn');
+    const map = {A:0,B:1,C:2,D:3};
+    if (k in map && btns[map[k]] && !btns[map[k]].disabled) btns[map[k]].click();
+    if (['ENTER','ARROWRIGHT',' '].includes(k)) {
+        const nb = document.getElementById('nextBtn');
+        if (nb.className.includes('show')) nb.click();
     }
 });
-
-// ══════════════════════════════════════════════════════════════════════
-//  启动
-// ══════════════════════════════════════════════════════════════════════
 
 showQuestion(0);
 </script>
