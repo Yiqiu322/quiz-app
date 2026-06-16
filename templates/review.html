@@ -3,334 +3,229 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>{{ subject_name }} — 刷题</title>
+<title>{{ subject_name }}</title>
 <style>
-    :root {
-        --bg: #F2EFEA; --card: #FAF8F4; --border: #D8D2C6;
-        --text: #2C3E50; --muted: #6B7B8D;
-        --primary: #3A7D5C; --primary-light: #EDF7F0;
-        --success: #6AAF7B; --error: #D4786A; --error-bg: #FDF0EE;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
-        background: var(--bg); color: var(--text); min-height: 100vh;
-        -webkit-font-smoothing: antialiased;
-    }
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+    font-family:-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;
+    background:#f4f1ec;color:#2c3e50;min-height:100vh
+}
+@media(min-width:768px){body{max-width:580px;margin:0 auto}}
 
-    /* ── Top Bar ── */
-    .topbar {
-        background: var(--primary); color: white; padding: 14px 16px;
-        display: flex; align-items: center; gap: 12px;
-        position: sticky; top: 0; z-index: 10;
-    }
-    .topbar a { color: white; text-decoration: none; font-size: 24px; line-height: 1; }
-    .topbar .title { flex: 1; font-size: 15px; font-weight: 600; }
-    .topbar .progress { font-size: 13px; opacity: 0.85; }
+/* Top bar */
+.top{
+    background:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;
+    position:sticky;top:0;z-index:10;border-bottom:1px solid #e8e2da
+}
+.top a{color:#3a7d5c;text-decoration:none;font-size:26px;line-height:1}
+.top .t{flex:1;font-size:15px;font-weight:600;color:#2c3e50}
+.top .p{font-size:13px;color:#8a9ba8}
 
-    /* ── Progress Bar ── */
-    .progress-bar-wrap { height: 4px; background: rgba(255,255,255,0.2); }
-    .progress-bar-fill { height: 100%; background: white; transition: width 0.3s; border-radius: 0 2px 2px 0; }
+/* Progress */
+.pbar{height:3px;background:#e8e2da}
+.pbar div{height:100%;background:#3a7d5c;transition:width .35s ease;border-radius:0 2px 2px 0}
 
-    /* ── Meta ── */
-    .meta-bar { display: flex; gap: 8px; padding: 10px 16px 0; flex-wrap: wrap; }
-    .badge { font-size: 12px; padding: 3px 12px; border-radius: 20px; background: var(--border); color: var(--muted); }
-    .badge-wrong { background: var(--error-bg); color: var(--error); }
-    .star-btn { font-size: 12px; padding: 3px 12px; border-radius: 20px; border: none;
-        cursor: pointer; background: var(--border); color: var(--muted); font-family: inherit; }
-    .star-btn.active { background: #FDF8EE; color: #D4A86A; }
+/* Meta */
+.meta{display:flex;gap:6px;padding:10px 16px 6px;flex-wrap:wrap;align-items:center}
+.meta .b{font-size:12px;padding:3px 10px;border-radius:20px;background:#e8e2da;color:#8a9ba8}
+.meta .bw{background:#fdf0ee;color:#d4786a}
+.meta button{
+    font-size:12px;padding:3px 10px;border-radius:20px;border:none;cursor:pointer;
+    font-family:inherit;background:#e8e2da;color:#8a9ba8;transition:all .12s
+}
+.meta button:active{transform:scale(.94)}
+.meta .on{background:#eaf5ee;color:#3a7d5c;font-weight:600}
 
-    /* ── Question Card ── */
-    .card { background: var(--card); border: 1px solid var(--border);
-        border-radius: 14px; margin: 12px 12px 0; padding: 20px 18px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-    .stem { font-size: 17px; font-weight: 600; line-height: 1.7;
-        white-space: pre-wrap; word-break: break-word; }
-    .stem-img { max-width: 100%; height: auto; border-radius: 8px; margin-top: 10px; display: block; }
+/* Card */
+.card{
+    background:#fff;border-radius:16px;margin:10px 12px 0;padding:20px 18px;
+    box-shadow:0 1px 4px rgba(0,0,0,.04)
+}
+.stem{font-size:17px;font-weight:600;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.stem-img{max-width:100%;height:auto;border-radius:10px;margin-top:10px;display:block}
 
-    /* ── Options ── */
-    .options { margin: 10px 12px 0; display: flex; flex-direction: column; gap: 8px; }
-    .option-btn {
-        display: flex; align-items: center; gap: 12px; width: 100%;
-        background: var(--card); border: 2px solid var(--border);
-        border-radius: 14px; padding: 14px 16px; font-size: 16px;
-        text-align: left; color: var(--text); cursor: pointer;
-        transition: all 0.15s; font-family: inherit; line-height: 1.4;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    }
-    .option-btn:active { transform: scale(0.98); }
-    .option-btn .letter {
-        width: 30px; height: 30px; line-height: 30px; text-align: center;
-        border-radius: 50%; background: var(--bg); color: var(--primary);
-        font-weight: 700; font-size: 14px; flex-shrink: 0;
-        transition: all 0.15s;
-    }
-    .option-btn.selected { border-color: var(--primary); background: var(--primary-light); }
-    .option-btn.selected .letter { background: var(--primary); color: white; }
-    .option-btn.correct { border-color: var(--success); background: var(--primary-light); border-width: 2px; }
-    .option-btn.correct .letter { background: var(--success); color: white; }
-    .option-btn.wrong { border-color: var(--error); background: var(--error-bg); border-width: 2px; }
-    .option-btn.wrong .letter { background: var(--error); color: white; }
+/* Options */
+.opts{margin:8px 12px 0;display:flex;flex-direction:column;gap:8px}
+.opt{
+    display:flex;align-items:center;gap:12px;width:100%;
+    background:#fff;border:1.5px solid #e8e2da;border-radius:14px;
+    padding:14px 16px;font-size:15px;text-align:left;color:#2c3e50;
+    cursor:pointer;transition:all .12s;font-family:inherit;line-height:1.4;
+    box-shadow:0 1px 3px rgba(0,0,0,.02)
+}
+.opt:active{transform:scale(.97)}
+.opt .l{
+    width:30px;height:30px;line-height:30px;text-align:center;
+    border-radius:50%;background:#f4f1ec;color:#5b7b7a;
+    font-weight:700;font-size:14px;flex-shrink:0;transition:all .12s
+}
+.opt.sel{border-color:#3a7d5c;background:#f6fbf8}
+.opt.sel .l{background:#3a7d5c;color:#fff}
+.opt.c{border-color:#6dbf8a;background:#f2faf5}
+.opt.c .l{background:#6dbf8a;color:#fff}
+.opt.e{border-color:#d99587;background:#fcf4f2}
+.opt.e .l{background:#d99587;color:#fff}
 
-    /* ── Feedback ── */
-    .feedback { margin: 8px 12px 0; padding: 14px 16px; border-radius: 12px;
-        font-size: 16px; font-weight: 700; text-align: center; display: none; }
-    .feedback.show { display: block; animation: fadeIn 0.2s; }
-    .feedback.correct { background: var(--primary-light); color: var(--primary); }
-    .feedback.wrong { background: var(--error-bg); color: var(--error); }
-    .feedback .detail { font-size: 13px; font-weight: normal; margin-top: 4px; opacity: 0.8; }
+/* Feedback */
+.fb{
+    margin:8px 12px 0;padding:14px 16px;border-radius:14px;
+    font-size:15px;font-weight:700;text-align:center;display:none
+}
+.fb.s{display:block;animation:in .2s}
+.fb.ok{background:#f2faf5;color:#3a7d5c}
+.fb.no{background:#fcf4f2;color:#d4786a}
+.fb .d{font-size:13px;font-weight:400;margin-top:4px;opacity:.75}
 
-    /* ── Next Button ── */
-    .next-wrap { margin: 12px 12px 24px; }
-    .next-btn {
-        width: 100%; background: var(--primary); color: white;
-        border: none; border-radius: 14px; padding: 16px;
-        font-size: 17px; font-weight: 700; cursor: pointer;
-        transition: all 0.15s; font-family: inherit; display: none;
-        box-shadow: 0 2px 8px rgba(58,125,92,0.3);
-    }
-    .next-btn.show { display: block; animation: fadeIn 0.2s; }
-    .next-btn:active { transform: scale(0.97); }
+/* Next */
+.nw{margin:10px 12px 24px}
+.nx{
+    width:100%;background:#3a7d5c;color:#fff;border:none;border-radius:14px;
+    padding:16px;font-size:16px;font-weight:700;cursor:pointer;
+    transition:all .12s;font-family:inherit;display:none;
+    box-shadow:0 2px 8px rgba(58,125,92,.25)
+}
+.nx.s{display:block;animation:in .2s}
+.nx:active{transform:scale(.96)}
 
-    /* ── Completion ── */
-    .completion { text-align: center; padding: 32px 16px; }
-    .completion .emoji { font-size: 56px; margin-bottom: 8px; }
-    .completion h2 { font-size: 24px; color: var(--primary); margin-bottom: 16px; }
-    .completion .result-grid { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
-    .completion .result-item {
-        background: var(--card); border: 1px solid var(--border);
-        border-radius: 12px; padding: 14px 18px; min-width: 80px;
-    }
-    .completion .result-item .num { font-size: 28px; font-weight: 800; }
-    .completion .result-item .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .completion .result-item .num.green { color: var(--success); }
-    .completion .result-item .num.red { color: var(--error); }
-    .completion .result-item .num.orange { color: #D4A86A; }
-    .completion .back-btn {
-        display: inline-block; background: var(--primary); color: white;
-        padding: 14px 40px; border-radius: 14px; text-decoration: none;
-        font-size: 16px; font-weight: 600; margin-top: 8px;
-    }
+/* Completion */
+.done{text-align:center;padding:24px 12px}
+.done .e{font-size:56px;margin-bottom:6px}
+.done h2{font-size:24px;color:#3a7d5c;margin-bottom:18px}
+.done .g{display:flex;gap:10px;justify-content:center;margin-bottom:20px}
+.done .g>div{
+    background:#fff;border-radius:14px;padding:14px 20px;min-width:76px;
+    box-shadow:0 1px 4px rgba(0,0,0,.04)
+}
+.done .g .n{font-size:28px;font-weight:800}
+.done .g .l{font-size:11px;color:#8a9ba8;margin-top:2px}
+.done .g .g2{color:#6dbf8a}.done .g .r{color:#d99587}.done .g .o{color:#c8904a}
+.done .bk{
+    display:inline-block;background:#3a7d5c;color:#fff;padding:14px 44px;
+    border-radius:14px;text-decoration:none;font-size:15px;font-weight:600;
+    box-shadow:0 2px 8px rgba(58,125,92,.25)
+}
 
-    /* ── Empty ── */
-    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
-    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-    .empty-state p { font-size: 15px; margin-bottom: 20px; }
-    .back-btn { display: inline-block; background: var(--primary); color: white;
-        padding: 12px 32px; border-radius: 12px; text-decoration: none; font-size: 15px; }
+.empty{text-align:center;padding:60px 20px;color:#8a9ba8}
+.empty .e{font-size:48px;margin-bottom:12px}
+.empty p{font-size:14px;margin-bottom:20px}
+.bk{display:inline-block;background:#3a7d5c;color:#fff;padding:12px 32px;border-radius:12px;text-decoration:none;font-size:14px}
 
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-    @media (min-width: 768px) { body { max-width: 600px; margin: 0 auto; } }
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-    <a href="/" id="backLink">‹</a>
-    <span class="title">{{ subject_name }}</span>
-    <span class="progress" id="progressText">0/0</span>
+<div class="top">
+    <a href="/" id="bl">‹</a>
+    <span class="t">{{ subject_name }}</span>
+    <span class="p" id="pt">0/0</span>
 </div>
-<div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
+<div class="pbar"><div id="pb" style="width:0%"></div></div>
 
 {% if msg %}
-<div class="empty-state">
-    <div class="icon">📭</div>
-    <p>{{ msg }}</p>
-    <a href="/" class="back-btn">← 返回首页</a>
-</div>
+<div class="empty"><div class="e">📭</div><p>{{ msg }}</p><a href="/" class="bk">← 返回</a></div>
 {% else %}
 
-<div class="meta-bar" id="metaBar">
-    <span class="badge" id="wrongBadge"></span>
-    <button class="star-btn" id="starBtn" onclick="toggleStar()">☆ 星标</button>
-    <button class="star-btn" id="shuffleBtn" onclick="toggleShuffle()" style="margin-left:auto;">
-        🔀 <span id="shuffleLabel">开</span>
-    </button>
+<div class="meta" id="meta">
+    <span class="b" id="wb"></span>
+    <button id="sb" onclick="ts()">☆ 星标</button>
+    <button id="sfb" onclick="tsf()" style="margin-left:auto;">🔀 开</button>
 </div>
 
-<div class="card" id="questionCard">
-    <div class="stem" id="stemText"></div>
-    <div id="stemImages"></div>
+<div class="card" id="qc">
+    <div class="stem" id="st"></div>
+    <div id="si"></div>
 </div>
 
-<div class="options" id="optionsContainer"></div>
-
-<div class="feedback" id="feedback"></div>
-
-<div class="next-wrap">
-    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">⏭ 下一题 →</button>
-</div>
+<div class="opts" id="oc"></div>
+<div class="fb" id="fb"></div>
+<div class="nw"><button class="nx" id="nb" onclick="nq()">⏭ 下一题</button></div>
 
 <script>
-const questions = {{ questions_json | tojson | safe }};
-let idx = 0, answered = false, correct = 0, total = 0;
-let mapping = [];
-let shuffleOn = true;
+const qs = {{ questions_json | tojson | safe }};
+let idx=0, ans=false, ok=0, tot=0, map=[], shf=true;
 
-function toggleShuffle() {
-    shuffleOn = !shuffleOn;
-    document.getElementById('shuffleLabel').textContent = shuffleOn ? '开' : '关';
+function tsf(){shf=!shf;document.getElementById('sfb').textContent='🔀 '+(shf?'开':'关')}
+function ts(){
+    const q=qs[idx];if(!q)return
+    fetch('/api/toggle_star',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question_id:q.id})})
+    .then(r=>r.json()).then(d=>{q.starred=d.starred
+        const b=document.getElementById('sb')
+        b.textContent=d.starred?'⭐ 星标':'☆ 星标'
+        b.className=d.starred?'on':''
+    }).catch(()=>{})
 }
 
-function showQuestion(index) {
-    if (index >= questions.length) { showCompletion(); return; }
-    idx = index; answered = false;
-    const q = questions[index];
+function sq(i){
+    if(i>=qs.length){done();return}
+    idx=i;ans=false;const q=qs[i]
+    document.getElementById('pt').textContent=(i+1)+'/'+qs.length
+    document.getElementById('pb').style.width=((i/qs.length)*100)+'%'
+    document.getElementById('st').textContent=q.stem
+    document.getElementById('si').innerHTML=''
 
-    document.getElementById('progressText').textContent = `${index+1}/${questions.length}`;
-    document.getElementById('progressBar').style.width = `${((index)/questions.length)*100}%`;
+    const wb=document.getElementById('wb')
+    wb.textContent=q.wrong_count>0?'❌ 已错 '+q.wrong_count+' 次':''
+    wb.className=q.wrong_count>0?'b bw':'b'
 
-    // Stem
-    document.getElementById('stemText').textContent = q.stem;
-    document.getElementById('stemImages').innerHTML = '';
+    const sb=document.getElementById('sb')
+    sb.textContent=q.starred?'⭐ 星标':'☆ 星标'
+    sb.className=q.starred?'on':''
 
-    // Wrong badge
-    const wb = document.getElementById('wrongBadge');
-    wb.textContent = q.wrong_count > 0 ? `❌ 已错 ${q.wrong_count} 次` : '';
-    wb.className = q.wrong_count > 0 ? 'badge badge-wrong' : 'badge';
-
-    // Star
-    const sb = document.getElementById('starBtn');
-    sb.textContent = q.starred ? '⭐ 已星标' : '☆ 星标';
-    sb.className = q.starred ? 'star-btn active' : 'star-btn';
-
-    // Options
-    const opts = Object.entries(q.options);
-    if (shuffleOn) {
-        for (let i = opts.length - 1; i > 0; i--) {
-            let j = Math.floor(Math.random() * (i + 1));
-            [opts[i], opts[j]] = [opts[j], opts[i]];
-        }
-    }
-
-    mapping = [];
-    const container = document.getElementById('optionsContainer');
-    container.innerHTML = '';
-    const letters = ['A','B','C','D'];
-
-    opts.forEach(([orig, text], i) => {
-        const dl = letters[i];
-        mapping.push([dl, orig]);
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.innerHTML = `<span class="letter">${dl}</span><span>${text}</span>`;
-        btn.dataset.display = dl;
-        btn.onclick = () => selectOption(dl);
-        container.appendChild(btn);
-    });
-
-    document.getElementById('feedback').className = 'feedback';
-    document.getElementById('feedback').style.display = 'none';
-    document.getElementById('nextBtn').className = 'next-btn';
-}
-
-function selectOption(dl) {
-    if (answered) return;
-    answered = true;
-    const q = questions[idx];
-
-    // Map display → original
-    let orig = dl;
-    for (const [d, o] of mapping) { if (d === dl) { orig = o; break; } }
-
-    document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
-
-    // Submit
-    fetch('/api/submit', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({question_id: q.id, answer: orig})
+    let opts=Object.entries(q.options)
+    if(shf){for(let i=opts.length-1;i>0;i--){let j=Math.random()*(i+1)|0;[opts[i],opts[j]]=[opts[j],opts[i]]}}
+    map=[]
+    const oc=document.getElementById('oc');oc.innerHTML=''
+    const ls='ABCD'
+    opts.forEach(([orig,text],i)=>{
+        const dl=ls[i];map.push([dl,orig])
+        const b=document.createElement('button')
+        b.className='opt';b.innerHTML='<span class="l">'+dl+'</span><span>'+text+'</span>'
+        b.dataset.d=dl;b.onclick=()=>so(dl);oc.appendChild(b)
     })
-    .then(r => r.json())
-    .then(res => {
-        total++;
-        if (res.correct) correct++;
-
-        // Color buttons
-        document.querySelectorAll('.option-btn').forEach(btn => {
-            let o = btn.dataset.display;
-            for (const [d, k] of mapping) { if (d === o) { o = k; break; } }
-            if (o === res.correct_answer) btn.classList.add('correct');
-            if (btn.dataset.display === dl && !res.correct) btn.classList.add('wrong');
-        });
-
-        // Feedback
-        const fb = document.getElementById('feedback');
-        if (res.correct) {
-            fb.className = 'feedback correct show';
-            fb.innerHTML = '✅ 回答正确！';
-        } else {
-            fb.className = 'feedback wrong show';
-            fb.innerHTML = `❌ 回答错误<br><span class="detail">正确答案：${res.correct_answer}. ${res.correct_text}</span>`;
-        }
-        if (res.wrong_count > 0) {
-            fb.innerHTML += `<span class="detail">（已错 ${res.wrong_count} 次）</span>`;
-        }
-
-        // Next button
-        const nb = document.getElementById('nextBtn');
-        nb.className = 'next-btn show';
-        nb.textContent = idx >= questions.length - 1 ? '📊 查看成绩' : '⏭ 下一题 →';
-    })
-    .catch(() => { answered = false; alert('提交失败，请重试'); });
+    document.getElementById('fb').className='fb';document.getElementById('fb').style.display='none'
+    document.getElementById('nb').className='nx'
 }
 
-function nextQuestion() {
-    if (idx + 1 >= questions.length) { showCompletion(); }
-    else { showQuestion(idx + 1); }
+function so(dl){
+    if(ans)return;ans=true;const q=qs[idx]
+    let orig=dl;for(const[d,o]of map){if(d===dl){orig=o;break}}
+    document.querySelectorAll('.opt').forEach(b=>b.disabled=true)
+    fetch('/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question_id:q.id,answer:orig})})
+    .then(r=>r.json()).then(res=>{
+        tot++;if(res.correct)ok++
+        document.querySelectorAll('.opt').forEach(b=>{
+            let o=b.dataset.d;for(const[d,k]of map){if(d===o){o=k;break}}
+            if(o===res.correct_answer)b.classList.add('c')
+            if(b.dataset.d===dl&&!res.correct)b.classList.add('e')
+        })
+        const fb=document.getElementById('fb')
+        if(res.correct){fb.className='fb s ok';fb.innerHTML='✅ 正确'}
+        else{fb.className='fb s no';fb.innerHTML='❌ 错误<br><span class="d">正确答案：'+res.correct_answer+'. '+res.correct_text+'</span>'}
+        if(res.wrong_count>0)fb.innerHTML+='<span class="d">（已错 '+res.wrong_count+' 次）</span>'
+        const nb=document.getElementById('nb')
+        nb.className='nx s';nb.textContent=idx>=qs.length-1?'📊 看成绩':'⏭ 下一题'
+    }).catch(()=>{ans=false;alert('提交失败，请重试')})
 }
 
-function showCompletion() {
-    const pct = total > 0 ? Math.round(correct / total * 100) : 0;
-    const wrong = total - correct;
-    document.getElementById('progressBar').style.width = '100%';
-    document.getElementById('questionCard').innerHTML = `
-        <div class="completion">
-            <div class="emoji">🎉</div>
-            <h2>刷题完成！</h2>
-            <div class="result-grid">
-                <div class="result-item"><div class="num green">${correct}</div><div class="lbl">✅ 正确</div></div>
-                <div class="result-item"><div class="num red">${wrong}</div><div class="lbl">❌ 错误</div></div>
-                <div class="result-item"><div class="num orange">${pct}%</div><div class="lbl">🎯 正确率</div></div>
-            </div>
-            <a href="/" class="back-btn">← 返回首页</a>
-        </div>
-    `;
-    document.getElementById('optionsContainer').innerHTML = '';
-    document.getElementById('feedback').style.display = 'none';
-    document.getElementById('nextBtn').className = 'next-btn';
-    document.getElementById('metaBar').innerHTML = '';
-    document.getElementById('progressText').textContent = '已完成';
-    document.getElementById('backLink').innerHTML = '‹ 返回';
+function nq(){if(idx+1>=qs.length)done();else sq(idx+1)}
+
+function done(){
+    const p=tot>0?Math.round(ok/tot*100):0,w=tot-ok
+    document.getElementById('pb').style.width='100%'
+    document.getElementById('qc').innerHTML='<div class="done"><div class="e">🎉</div><h2>完成！</h2><div class="g"><div><div class="n g2">'+ok+'</div><div class="l">✅ 正确</div></div><div><div class="n r">'+w+'</div><div class="l">❌ 错误</div></div><div><div class="n o">'+p+'%</div><div class="l">🎯 正确率</div></div></div><a href="/" class="bk">← 返回首页</a></div>'
+    document.getElementById('oc').innerHTML='';document.getElementById('fb').style.display='none'
+    document.getElementById('nb').className='nx';document.getElementById('meta').innerHTML=''
+    document.getElementById('pt').textContent='已完成';document.getElementById('bl').innerHTML='‹ 返回'
 }
 
-function toggleStar() {
-    const q = questions[idx]; if (!q) return;
-    fetch('/api/toggle_star', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({question_id: q.id})
-    }).then(r => r.json()).then(d => {
-        q.starred = d.starred;
-        const sb = document.getElementById('starBtn');
-        sb.textContent = d.starred ? '⭐ 已星标' : '☆ 星标';
-        sb.className = d.starred ? 'star-btn active' : 'star-btn';
-    }).catch(() => {});
-}
+document.addEventListener('keydown',e=>{
+    const k=e.key.toUpperCase(),btns=document.querySelectorAll('.opt'),m={A:0,B:1,C:2,D:3}
+    if(k in m&&btns[m[k]]&&!btns[m[k]].disabled)btns[m[k]].click()
+    if(['ENTER','ARROWRIGHT',' '].includes(k)){const nb=document.getElementById('nb');if(nb.className.includes('s'))nb.click()}
+})
 
-// Keyboard shortcuts
-document.addEventListener('keydown', e => {
-    const k = e.key.toUpperCase();
-    const btns = document.querySelectorAll('.option-btn');
-    const map = {A:0,B:1,C:2,D:3};
-    if (k in map && btns[map[k]] && !btns[map[k]].disabled) btns[map[k]].click();
-    if (['ENTER','ARROWRIGHT',' '].includes(k)) {
-        const nb = document.getElementById('nextBtn');
-        if (nb.className.includes('show')) nb.click();
-    }
-});
-
-showQuestion(0);
+sq(0)
 </script>
 {% endif %}
 </body>

@@ -10,110 +10,81 @@
 <meta name="apple-mobile-web-app-title" content="刷题">
 <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
 <style>
-    :root {
-        --bg: #F2EFEA;
-        --card: #FAF8F4;
-        --card-hover: #F4F1EB;
-        --border: #D8D2C6;
-        --text: #2C3E50;
-        --muted: #6B7B8D;
-        --primary: #3A7D5C;
-        --primary-light: #EDF7F0;
-        --secondary: #5B7B7A;
-        --success: #6AAF7B;
-        --error: #D4786A;
-        --error-bg: #FDF0EE;
-        --shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+    font-family:-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;
+    background:#f4f1ec;color:#2c3e50;min-height:100vh;
+    -webkit-font-smoothing:antialiased;padding:16px
+}
+@media(min-width:768px){body{max-width:580px;margin:0 auto;padding:28px 20px}}
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        padding: 16px;
-        min-height: 100vh;
-        -webkit-font-smoothing: antialiased;
-    }
+/* Header */
+.header{text-align:center;padding:22px 0 18px}
+.header h1{font-size:24px;color:#3a7d5c;font-weight:700;letter-spacing:.5px}
+.header p{font-size:13px;color:#8a9ba8;margin-top:3px}
 
-    /* ── Header ── */
-    .header { text-align: center; padding: 24px 0 20px; }
-    .header h1 { font-size: 26px; color: var(--primary); letter-spacing: 1px; }
-    .header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+/* Stats */
+.stats{display:flex;gap:10px;margin-bottom:20px}
+.stat-card{
+    flex:1;background:#fff;border-radius:16px;padding:16px 6px 14px;
+    text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.04);
+    transition:transform .15s
+}
+.stat-card:active{transform:scale(.96)}
+.stat-num{font-size:26px;font-weight:800;line-height:1.2}
+.stat-num.g{color:#3a7d5c}.stat-num.b{color:#5b7b7a}.stat-num.o{color:#c8904a}
+.stat-label{font-size:11px;color:#8a9ba8;margin-top:3px;font-weight:500}
 
-    /* ── Stats Cards ── */
-    .stats-row { display: flex; gap: 10px; margin-bottom: 16px; }
-    .stat-card {
-        flex: 1; background: var(--card); border-radius: 14px;
-        padding: 14px 8px; text-align: center;
-        box-shadow: var(--shadow); border: 1px solid var(--border);
-    }
-    .stat-num { font-size: 24px; font-weight: 800; }
-    .stat-num.green { color: var(--primary); }
-    .stat-num.blue { color: var(--secondary); }
-    .stat-num.orange { color: #D4A86A; }
-    .stat-label { font-size: 11px; color: var(--muted); margin-top: 3px; }
+/* Quick */
+.quick-actions{display:flex;gap:10px;margin-bottom:20px}
+.quick-btn{
+    flex:1;display:block;text-align:center;text-decoration:none;
+    background:#3a7d5c;color:#fff;border-radius:14px;padding:15px;
+    font-size:15px;font-weight:700;box-shadow:0 2px 8px rgba(58,125,92,.25);
+    transition:all .15s
+}
+.quick-btn:active{transform:scale(.96);opacity:.9}
 
-    /* ── Quick Actions ── */
-    .quick-actions { display: flex; gap: 10px; margin-bottom: 18px; }
-    .quick-btn {
-        flex: 1; display: block; text-align: center; text-decoration: none;
-        background: var(--primary); color: white; border: none; border-radius: 14px;
-        padding: 16px; font-size: 16px; font-weight: 700;
-        box-shadow: var(--shadow); transition: all 0.15s; cursor: pointer;
-    }
-    .quick-btn:active { transform: scale(0.97); opacity: 0.9; }
-    .quick-btn.alt { background: var(--secondary); }
+/* Section */
+.sec{display:flex;justify-content:space-between;align-items:center;margin:22px 0 10px}
+.sec h2{font-size:16px;font-weight:700;color:#2c3e50}
+.sec span{font-size:12px;color:#8a9ba8;background:#eae6e0;padding:2px 10px;border-radius:8px}
 
-    /* ── Section ── */
-    .section-header {
-        display: flex; justify-content: space-between; align-items: center;
-        margin: 20px 0 10px;
-    }
-    .section-header h2 { font-size: 16px; font-weight: 700; color: var(--text); }
-    .section-header span { font-size: 12px; color: var(--muted); background: var(--card-hover);
-        padding: 2px 10px; border-radius: 10px; }
+/* Subject card */
+.s-card{
+    display:block;text-decoration:none;color:#2c3e50;
+    background:#fff;border-radius:16px;padding:16px 18px;margin-bottom:8px;
+    box-shadow:0 1px 4px rgba(0,0,0,.04);transition:all .15s
+}
+.s-card:active{transform:scale(.97);background:#fcfaf7}
+.s-top{display:flex;justify-content:space-between;align-items:center}
+.s-name{font-size:16px;font-weight:600}
+.s-arrow{font-size:20px;color:#d0c8bc;font-weight:300}
+.s-meta{font-size:12px;color:#8a9ba8;margin-top:5px;display:flex;gap:8px;flex-wrap:wrap}
+.s-meta .t{padding:1px 8px;border-radius:6px;font-size:11px}
+.t-green{background:#eaf5ee;color:#3a7d5c}
+.t-red{background:#fdf0ee;color:#d4786a}
+.t-gold{background:#fdf6ec;color:#c8904a}
+.t-gray{background:#f0ede8;color:#8a9ba8}
 
-    /* ── Subject Card ── */
-    .subject-card {
-        display: block; text-decoration: none; color: var(--text);
-        background: var(--card); border: 1px solid var(--border);
-        border-radius: 14px; padding: 16px; margin-bottom: 10px;
-        box-shadow: var(--shadow); transition: all 0.15s;
-    }
-    .subject-card:active { transform: scale(0.98); background: var(--card-hover); }
-    .subject-top { display: flex; justify-content: space-between; align-items: center; }
-    .subject-name { font-size: 16px; font-weight: 600; }
-    .subject-arrow { font-size: 20px; color: #B8B0A0; }
-    .subject-meta { font-size: 12px; color: var(--muted); margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
-    .subject-meta .tag { padding: 1px 8px; border-radius: 8px; font-size: 11px; }
-    .tag-green { background: var(--primary-light); color: var(--primary); }
-    .tag-red { background: var(--error-bg); color: var(--error); }
-    .tag-gold { background: #FDF8EE; color: #D4A86A; }
+/* Sub links */
+.s-subs{display:flex;gap:6px;margin-top:8px;margin-bottom:4px}
+.s-sub{
+    flex:1;text-align:center;text-decoration:none;font-size:12px;
+    padding:7px;border-radius:10px;background:#f0ede8;color:#8a9ba8;
+    transition:all .12s;font-weight:500
+}
+.s-sub:active{transform:scale(.96)}
+.s-sub.w{color:#d4786a;background:#fdf0ee}
+.s-sub.s{color:#c8904a;background:#fdf6ec}
 
-    /* ── Sub-links (wrong/star) ── */
-    .sub-links { display: flex; gap: 8px; margin-top: 10px; }
-    .sub-link {
-        flex: 1; text-align: center; text-decoration: none; font-size: 12px;
-        padding: 8px; border-radius: 10px; background: var(--card-hover);
-        color: var(--muted); transition: all 0.15s;
-    }
-    .sub-link:active { transform: scale(0.97); }
-    .sub-link.wrong { color: var(--error); }
-    .sub-link.star { color: #D4A86A; }
+/* Empty */
+.empty{text-align:center;padding:60px 20px;color:#8a9ba8}
+.empty .icon{font-size:48px;margin-bottom:12px}
+.empty p{font-size:14px;line-height:1.7}
 
-    /* ── Empty ── */
-    .empty { text-align: center; padding: 48px 16px; color: var(--muted); }
-    .empty .icon { font-size: 48px; margin-bottom: 12px; }
-    .empty p { font-size: 14px; }
-
-    /* ── Footer ── */
-    .footer { text-align: center; padding: 32px 0 16px; font-size: 12px; color: #B8B0A0; }
-
-    /* ── Desktop ── */
-    @media (min-width: 768px) {
-        body { max-width: 600px; margin: 0 auto; padding: 24px 16px; }
-    }
+/* Footer */
+.footer{text-align:center;padding:28px 0 12px;font-size:12px;color:#c8c0b4}
 </style>
 </head>
 <body>
@@ -123,57 +94,49 @@
     <p>随时随地，想刷就刷</p>
 </div>
 
-<!-- 统计卡片 -->
-<div class="stats-row">
-    <div class="stat-card"><div class="stat-num green">{{ total_qs }}</div><div class="stat-label">总题数</div></div>
-    <div class="stat-card"><div class="stat-num blue">{{ total_answered }}</div><div class="stat-label">已答题</div></div>
-    <div class="stat-card"><div class="stat-num orange">{{ overall_acc }}%</div><div class="stat-label">正确率</div></div>
+<div class="stats">
+    <div class="stat-card"><div class="stat-num g">{{ total_qs }}</div><div class="stat-label">总题数</div></div>
+    <div class="stat-card"><div class="stat-num b">{{ total_answered }}</div><div class="stat-label">已答题</div></div>
+    <div class="stat-card"><div class="stat-num o">{{ overall_acc }}%</div><div class="stat-label">正确率</div></div>
 </div>
 
-<!-- 快速操作 -->
 <div class="quick-actions">
-    <a href="/quick10" class="quick-btn">⚡ 刷 10 题</a>
+    <a href="/quick10" class="quick-btn">⚡ 随机 10 题</a>
 </div>
 
-<!-- 学科列表 -->
-<div class="section-header">
-    <h2>📚 学科</h2>
-    <span>{{ subjects|length }} 个</span>
-</div>
+<div class="sec"><h2>📚 学科</h2><span>{{ subjects|length }} 个</span></div>
 
 {% if subjects %}
     {% for s in subjects %}
     {% set st = stats|selectattr("subject_id", "equalto", s.id)|first %}
-    <a href="/review/{{ s.id }}?shuffle_o=1" class="subject-card">
-        <div class="subject-top">
-            <span class="subject-name">{{ s.name }}</span>
-            <span class="subject-arrow">›</span>
+    <a href="/review/{{ s.id }}?shuffle_o=1" class="s-card">
+        <div class="s-top">
+            <span class="s-name">{{ s.name }}</span>
+            <span class="s-arrow">›</span>
         </div>
-        <div class="subject-meta">
+        <div class="s-meta">
             <span>{{ st.total if st else '?' }} 题</span>
-            {% if st and st.answered > 0 %}<span>| 正确率 {{ st.accuracy }}%</span>{% endif %}
-            {% if st and st.wrong_total > 0 %}<span class="tag tag-red">❌{{ st.wrong_total }}</span>{% endif %}
-            {% if st and st.answered == 0 %}<span class="tag tag-green">未开始</span>{% endif %}
+            {% if st and st.answered > 0 %}<span>· 正确率 {{ st.accuracy }}%</span>{% endif %}
+            {% if st and st.wrong_total > 0 %}<span class="t t-red">❌{{ st.wrong_total }}</span>{% endif %}
+            {% if st and st.answered == 0 %}<span class="t t-gray">未开始</span>{% endif %}
         </div>
     </a>
-    <div class="sub-links">
-        <a href="/review/{{ s.id }}?wrong=1" class="sub-link wrong">❌ 错题</a>
-        <a href="/review/{{ s.id }}?star=1" class="sub-link star">⭐ 星标</a>
+    <div class="s-subs">
+        <a href="/review/{{ s.id }}?wrong=1" class="s-sub w">❌ 错题</a>
+        <a href="/review/{{ s.id }}?star=1" class="s-sub s">⭐ 星标</a>
     </div>
     {% endfor %}
 {% else %}
     <div class="empty">
         <div class="icon">📥</div>
-        <p>还没有学科，<br>先去桌面端录入题目吧！</p>
+        <p>还没有学科，<br>先去桌面版录入题目吧！</p>
     </div>
 {% endif %}
 
-<div class="footer">数据与桌面端共享 · 电脑录入，手机刷题</div>
+<div class="footer">数据与桌面端共享</div>
 
 <script>
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-}
+if('serviceWorker'in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}
 </script>
 </body>
 </html>
