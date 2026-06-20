@@ -23,6 +23,20 @@ body{
 .header h1{font-size:24px;color:#3a7d5c;font-weight:700;letter-spacing:.5px}
 .header p{font-size:13px;color:#8a9ba8;margin-top:3px}
 
+/* Section Toggle */
+.toggle{display:flex;gap:8px;margin-bottom:20px;background:#eae6e0;border-radius:14px;padding:4px}
+.toggle-btn{
+    flex:1;text-align:center;border:none;background:transparent;
+    padding:10px 8px;border-radius:11px;font-size:15px;font-weight:600;
+    font-family:inherit;color:#8a9ba8;cursor:pointer;transition:all .15s
+}
+.toggle-btn.active{background:#fff;color:#3a7d5c;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.toggle-btn:active{transform:scale(.97)}
+
+/* Sections */
+.section{display:none}
+.section.active{display:block;animation:fadeIn .18s}
+
 /* Stats */
 .stats{display:flex;gap:10px;margin-bottom:20px}
 .stat-card{
@@ -41,11 +55,11 @@ body{
     flex:1;display:block;text-align:center;text-decoration:none;
     background:#3a7d5c;color:#fff;border-radius:14px;padding:15px;
     font-size:15px;font-weight:700;box-shadow:0 2px 8px rgba(58,125,92,.25);
-    transition:all .15s
+    transition:all .15s;border:none;font-family:inherit;cursor:pointer
 }
 .quick-btn:active{transform:scale(.96);opacity:.9}
 
-/* Section */
+/* Section heading */
 .sec{display:flex;justify-content:space-between;align-items:center;margin:22px 0 10px}
 .sec h2{font-size:16px;font-weight:700;color:#2c3e50}
 .sec span{font-size:12px;color:#8a9ba8;background:#eae6e0;padding:2px 10px;border-radius:8px}
@@ -83,8 +97,75 @@ body{
 .empty .icon{font-size:48px;margin-bottom:12px}
 .empty p{font-size:14px;line-height:1.7}
 
+/* Import card */
+.card{background:#fff;border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.card h3{font-size:15px;font-weight:700;margin-bottom:12px;color:#2c3e50}
+
+/* Form elements */
+select,input[type="text"],textarea{
+    font-family:inherit;font-size:14px;color:#2c3e50;
+    border:1.5px solid #e8e2da;border-radius:12px;padding:11px 14px;
+    width:100%;background:#fcfaf8;transition:border-color .15s;
+    outline:none;-webkit-appearance:none;appearance:none
+}
+select:focus,input[type="text"]:focus,textarea:focus{border-color:#3a7d5c}
+textarea{resize:vertical;min-height:200px;line-height:1.7}
+
+/* Subject row */
+.sbj-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.sbj-row select{flex:2}
+.sbj-row input[type="text"]{flex:1;min-width:0}
+
+/* Buttons */
+.btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:5px;
+    border:none;border-radius:12px;padding:11px 20px;font-size:14px;font-weight:600;
+    font-family:inherit;cursor:pointer;transition:all .12s;white-space:nowrap
+}
+.btn:active{transform:scale(.96)}
+.btn-p{background:#3a7d5c;color:#fff;box-shadow:0 2px 6px rgba(58,125,92,.2)}
+.btn-s{background:#eaf5ee;color:#3a7d5c}
+.btn-d{background:#f0ede8;color:#8a9ba8;cursor:not-allowed}
+.btn-outline{background:transparent;color:#8a9ba8;border:1.5px solid #e8e2da;padding:8px 14px;font-size:12px}
+.btn-outline:hover{border-color:#3a7d5c;color:#3a7d5c}
+.w-full{width:100%;padding:13px;font-size:15px}
+.w-full-m{padding:13px;font-size:15px}
+
+/* Tiny btn for new subject */
+.btn-tiny{padding:8px 14px;font-size:13px;flex-shrink:0}
+
+/* Status */
+.status{display:none;padding:12px 14px;border-radius:12px;font-size:14px;margin-bottom:12px;line-height:1.5}
+.status.s{display:block;animation:fadeIn .2s}
+.status.ok{background:#eaf5ee;color:#3a7d5c}
+.status.err{background:#fdf0ee;color:#d4786a}
+.status .sub{font-size:12px;font-weight:400;opacity:.8;margin-top:3px}
+
+/* Preview */
+.preview{margin-top:12px;display:none}
+.preview.s{display:block;animation:fadeIn .2s}
+.preview h3{margin-bottom:8px}
+.preview .count{font-size:13px;color:#8a9ba8;margin-bottom:10px}
+
+.q-item{
+    background:#fcfaf8;border-radius:12px;padding:14px;margin-bottom:8px;
+    border:1px solid #f0ede8
+}
+.q-item .stem{font-size:14px;font-weight:600;line-height:1.6;margin-bottom:6px}
+.q-item .opts{font-size:13px;color:#5b7b7a;line-height:1.5}
+.q-item .opts span{margin-right:12px}
+.q-item .ans{font-size:13px;color:#3a7d5c;font-weight:600;margin-top:4px}
+.q-item .idx{font-size:12px;color:#8a9ba8;margin-bottom:4px}
+
+/* Empty state for import */
+.empty-state{text-align:center;padding:30px 10px;color:#8a9ba8}
+.empty-state .icon{font-size:40px;margin-bottom:8px}
+.empty-state p{font-size:14px}
+
 /* Footer */
 .footer{text-align:center;padding:28px 0 12px;font-size:12px;color:#c8c0b4}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
@@ -94,6 +175,15 @@ body{
     <p>随时随地，想刷就刷</p>
 </div>
 
+<!-- Section Toggle -->
+<div class="toggle">
+    <button class="toggle-btn active" data-section="study" onclick="switchSection('study')">📚 刷题</button>
+    <button class="toggle-btn" data-section="import" onclick="switchSection('import')">📥 录入</button>
+</div>
+
+<!-- ===== Study Section ===== -->
+<div id="sectionStudy" class="section active">
+
 <div class="stats">
     <div class="stat-card"><div class="stat-num g">{{ total_qs }}</div><div class="stat-label">总题数</div></div>
     <div class="stat-card"><div class="stat-num b">{{ total_answered }}</div><div class="stat-label">已答题</div></div>
@@ -102,7 +192,6 @@ body{
 
 <div class="quick-actions">
     <a href="/quick10" class="quick-btn">⚡ 随机 10 题</a>
-    <a href="/import" class="quick-btn" style="background:#5b7b7a;">📥 录入</a>
 </div>
 
 <div class="sec"><h2>📚 学科</h2><span>{{ subjects|length }} 个</span></div>
@@ -130,14 +219,223 @@ body{
 {% else %}
     <div class="empty">
         <div class="icon">📥</div>
-        <p>还没有学科，<br>先去桌面版录入题目吧！</p>
+        <p>还没有学科，<br>切换到「录入」页签添加吧！</p>
     </div>
 {% endif %}
+
+</div>
+
+<!-- ===== Import Section ===== -->
+<div id="sectionImport" class="section">
+
+<div class="card">
+    <h3>📂 选择学科</h3>
+    <div class="sbj-row">
+        <select id="subjectSelect">
+            <option value="">-- 请选择 --</option>
+            {% for s in subjects %}
+            <option value="{{ s.id }}">{{ s.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="sbj-row">
+        <input type="text" id="newSubjectInput" placeholder="新建学科名称..." />
+        <button class="btn btn-s btn-tiny" onclick="newSubject()">＋新建</button>
+    </div>
+</div>
+
+<div class="card">
+    <h3>📝 粘贴题目</h3>
+    <textarea id="questionText" placeholder="在此粘贴题目文本...&#10;&#10;支持格式：&#10;1. (单选题, 10分).题干内容&#10;A. 选项&#10;B. 选项&#10;C. 选项&#10;D. 选项&#10;我的答案:X;正确答案:X;"></textarea>
+    <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn btn-p w-full" onclick="parseQuestions()">🔍 解析</button>
+        <button class="btn btn-outline" onclick="clearAll()">清空</button>
+    </div>
+</div>
+
+<div id="status" class="status"></div>
+
+<div id="preview" class="preview">
+    <div class="card">
+        <h3>📋 解析预览</h3>
+        <div id="previewCount" class="count"></div>
+        <div id="previewList"></div>
+        <div style="margin-top:12px">
+            <button id="saveBtn" class="btn btn-p w-full" onclick="saveQuestions()">💾 保存入库</button>
+        </div>
+    </div>
+</div>
+
+</div>
 
 <div class="footer">数据与桌面端共享</div>
 
 <script>
-if('serviceWorker'in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}
+let parsedQuestions = [];
+
+// Section toggle
+function switchSection(name) {
+    document.querySelectorAll('.toggle-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.section === name);
+    });
+    document.querySelectorAll('.section').forEach(function(s) {
+        s.classList.toggle('active', s.id === 'section' + name.charAt(0).toUpperCase() + name.slice(1));
+    });
+}
+
+function showStatus(msg, type) {
+    const el = document.getElementById('status');
+    el.textContent = msg;
+    el.className = 'status s ' + type;
+}
+
+function clearAll() {
+    document.getElementById('questionText').value = '';
+    document.getElementById('preview').className = 'preview';
+    document.getElementById('previewList').innerHTML = '';
+    document.getElementById('status').className = 'status';
+    parsedQuestions = [];
+}
+
+function newSubject() {
+    const name = document.getElementById('newSubjectInput').value.trim();
+    if (!name) {
+        showStatus('请输入学科名称', 'err');
+        return;
+    }
+    fetch('/api/subject/new', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({name: name})
+    })
+    .then(r => r.json())
+    .then(function(data) {
+        if (data.error) {
+            showStatus(data.error, 'err');
+            return;
+        }
+        const sel = document.getElementById('subjectSelect');
+        const opt = document.createElement('option');
+        opt.value = data.id;
+        opt.textContent = data.name;
+        opt.selected = true;
+        sel.appendChild(opt);
+        document.getElementById('newSubjectInput').value = '';
+        showStatus('✅ 学科「' + data.name + '」创建成功', 'ok');
+    })
+    .catch(function(e) { showStatus('创建失败：' + e.message, 'err'); });
+}
+
+function parseQuestions() {
+    const text = document.getElementById('questionText').value;
+    if (!text.trim()) {
+        showStatus('请先粘贴题目文本', 'err');
+        return;
+    }
+    showStatus('⏳ 正在解析...', 'ok');
+    fetch('/api/parse', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({text: text})
+    })
+    .then(r => r.json())
+    .then(function(data) {
+        if (data.error) {
+            showStatus('❌ ' + data.error, 'err');
+            return;
+        }
+        if (data.count === 0) {
+            showStatus('⚠️ 未能解析出任何题目，请检查文本格式', 'err');
+            document.getElementById('preview').className = 'preview';
+            return;
+        }
+        parsedQuestions = data.questions;
+        renderPreview(parsedQuestions);
+        showStatus('✅ 解析成功，共 ' + data.count + ' 道题', 'ok');
+        document.getElementById('preview').className = 'preview s';
+    })
+    .catch(function(e) { showStatus('❌ 解析失败：' + e.message, 'err'); });
+}
+
+function renderPreview(questions) {
+    const list = document.getElementById('previewList');
+    const count = document.getElementById('previewCount');
+    count.textContent = '共 ' + questions.length + ' 道题，请确认无误后保存';
+    list.innerHTML = '';
+    questions.forEach(function(q, i) {
+        const div = document.createElement('div');
+        div.className = 'q-item';
+        const opts = [];
+        if (q.option_a) opts.push('A. ' + q.option_a);
+        if (q.option_b) opts.push('B. ' + q.option_b);
+        if (q.option_c) opts.push('C. ' + q.option_c);
+        if (q.option_d) opts.push('D. ' + q.option_d);
+        div.innerHTML =
+            '<div class="idx">#' + (i + 1) + '</div>' +
+            '<div class="stem">' + escHtml(q.stem) + '</div>' +
+            '<div class="opts">' + opts.map(function(o) { return '<span>' + escHtml(o) + '</span>'; }).join('') + '</div>' +
+            '<div class="ans">✅ 答案：' + q.correct_answer + '</div>';
+        list.appendChild(div);
+    });
+}
+
+function escHtml(str) {
+    if (!str) return '';
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+function saveQuestions() {
+    const subjectId = document.getElementById('subjectSelect').value;
+    if (!subjectId) {
+        showStatus('请先选择或创建学科', 'err');
+        return;
+    }
+    if (parsedQuestions.length === 0) {
+        showStatus('没有题目可保存，请先解析', 'err');
+        return;
+    }
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.className = 'btn btn-d w-full';
+    btn.textContent = '⏳ 保存中...';
+
+    fetch('/api/questions/save', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            subject_id: parseInt(subjectId),
+            questions: parsedQuestions
+        })
+    })
+    .then(r => r.json())
+    .then(function(data) {
+        if (data.error) {
+            showStatus('❌ 保存失败：' + data.error, 'err');
+        } else {
+            showStatus('✅ 成功保存 ' + data.count + ' 道题到「' +
+                document.getElementById('subjectSelect').options[document.getElementById('subjectSelect').selectedIndex].text + '」', 'ok');
+            parsedQuestions = [];
+            document.getElementById('preview').className = 'preview';
+            document.getElementById('previewList').innerHTML = '';
+            document.getElementById('questionText').value = '';
+        }
+        btn.disabled = false;
+        btn.className = 'btn btn-p w-full';
+        btn.textContent = '💾 保存入库';
+    })
+    .catch(function(e) {
+        showStatus('❌ 保存失败：' + e.message, 'err');
+        btn.disabled = false;
+        btn.className = 'btn btn-p w-full';
+        btn.textContent = '💾 保存入库';
+    });
+}
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(function() {});
+}
 </script>
 </body>
 </html>
