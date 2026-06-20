@@ -192,7 +192,7 @@ function sq(i){
         let opts=Object.entries(q.options)
         if(shf){for(let i=opts.length-1;i>0;i--){let j=Math.random()*(i+1)|0;[opts[i],opts[j]]=[opts[j],opts[i]]}}
         map=[];selectedOptions=[]
-        const ls='ABCD'
+        const ls='ABCDE'
         opts.forEach(([orig,text],i)=>{
             const dl=ls[i];map.push([dl,orig])
             const b=document.createElement('button')
@@ -222,7 +222,7 @@ function sq(i){
         let opts=Object.entries(q.options)
         if(shf){for(let i=opts.length-1;i>0;i--){let j=Math.random()*(i+1)|0;[opts[i],opts[j]]=[opts[j],opts[i]]}}
         map=[]
-        const ls='ABCD'
+        const ls='ABCDE'
         opts.forEach(([orig,text],i)=>{
             const dl=ls[i];map.push([dl,orig])
             const b=document.createElement('button')
