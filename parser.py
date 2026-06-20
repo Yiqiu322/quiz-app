@@ -220,6 +220,9 @@ def parse_questions(text: str) -> list[dict]:
         m = RE_QUESTION_NUM_OLD.match(line)
         if m:
             candidate_stem = m.group(2).strip()
+            # 排除 "1.5分" 之类的小数被误认成题号
+            if re.match(r"\d+[.．]\d+", line.strip()):
+                candidate_stem = ""
             if candidate_stem:
                 _new_question(candidate_stem, "single")
                 continue
