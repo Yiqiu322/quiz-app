@@ -18,6 +18,7 @@ from flask import Flask, render_template, request, jsonify
 # 确保能找到同目录下的模块
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from database import DatabaseManager
+from parser import parse_questions
 
 app = Flask(__name__)
 db = DatabaseManager()
@@ -231,6 +232,57 @@ def service_worker():
     resp.headers["Content-Type"] = "application/javascript"
     resp.headers["Service-Worker-Allowed"] = "/"
     return resp
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  题目导入
+# ═══════════════════════════════════════════════════════════════════════════
+
+@app.route("/import")
+def import_page():
+    """题目录入页面"""
+    subjects = db.get_subjects()
+    return render_template("import.html", subjects=subjects)
+
+
+@app.route("/api/parse", methods=["POST"])
+def api_parse():
+    """解析粘贴的文本，返回结构化题目"""
+    data = request.get_json(force=True)
+    text = data.get("text", "")
+    if not text.strip():
+        return jsonify({"error": "文本为空"}), 400
+    try:
+        questions = parse_questions(text)
+        return jsonify({"count": len(questions), "questions": questions})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/subject/new", methods=["POST"])
+def api_new_subject():
+    """创建新学科"""
+    data = request.get_json(force=True)
+    name = data.get("name", "").strip()
+    if not name:
+        return jsonify({"error": "学科名称不能为空"}), 400
+    subject_id = db.add_subject(name)
+    return jsonify({"id": subject_id, "name": name})
+
+
+@app.route("/api/questions/save", methods=["POST"])
+def api_save_questions():
+    """批量保存题目到学科"""
+    data = request.get_json(force=True)
+    subject_id = data.get("subject_id")
+    questions = data.get("questions", [])
+    if not subject_id or not questions:
+        return jsonify({"error": "参数不完整"}), 400
+    try:
+        count = db.add_questions_batch(subject_id, questions)
+        return jsonify({"count": count})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # ═══════════════════════════════════════════════════════════════════════════
