@@ -23,9 +23,11 @@ AI讲解
   答案：A
 
 解析结果：list[dict]，每个 dict 含：
-  stem, option_a, option_b, option_c, option_d, correct_answer
+  stem, option_a, option_b, option_c, option_d, correct_answer, question_type
+question_type: "single" | "multi" | "judge" | "fill"
 """
 
+import json
 import os
 import re
 from typing import Optional
@@ -35,40 +37,52 @@ from typing import Optional
 #  正则常量
 # ═══════════════════════════════════════════════════════════════════════════
 
-# ── 题号 + (单选题/判断题, N分) + 题干 ──
+# 题型中文 → 内部标识
+TYPE_MAP = {
+    "单选": "single",
+    "多选": "multi",
+    "判断": "judge",
+    "填空": "fill",
+}
+
+# ── 题号 + (单选题/多选题/判断题/填空题, N分) + 题干 ──
 # 匹配如：
 #   1. (单选题, 10分).一个作业...
 #   2、(单选题,5分)以下关于...
 #   12. (判断题)进程状态转换中...
+#   5. (多选题, 2分)以下哪些...
+#   31. (填空题, 2分).称为（  ），它包含（  ）
 RE_QUESTION_HEADER = re.compile(
     r"^\s*"
     r"(\d+)"                       # 题号（group 1）
     r"\s*[.、．)）]\s*"
-    r"\((?:单选题|判断题)[^)]*\)"  # (单选题...) 或 (判断题...)
+    r"\("                          # 开括号
+    r"(单选|多选|判断|填空)"       # 题型（group 2）
+    r"题[^)]*\)"                   # 题 + 其它内容 + 闭括号
     r"[.．]?\s*"                    # 可选的点号
-    r"(.*)"                        # 题干正文（group 2）
+    r"(.*)"                        # 题干正文（group 3）
 )
 
 # ── 选项行：A. xxx / A、xxx / A．xxx / A) xxx ──
+# 支持 A~E（多选题可能有 E 选项）
 RE_OPTION = re.compile(
-    r"^\s*([A-Da-d])\s*[.、．)）]\s*(.*)"
+    r"^\s*([A-Ea-e])\s*[.、．)）]\s*(.*)"
 )
 
 # ── 正确答案一行内提取（从任意位置）──
-# 匹配：正确答案:D  正确答案：D  正确答案:对  正确答案:错  等
-# 也能从复合行中提取：我的答案:D:不确定性;正确答案:D:不确定性;
+# 匹配：正确答案:D  正确答案：D  正确答案:BD  正确答案：BD
+#       正确答案:对  正确答案:错
 # 对→A, 错→B 映射见 ANSWER_CHINESE_MAP
 RE_ANSWER = re.compile(
-    r"正确答案\s*[:：]\s*([A-Da-d对错])"
+    r"正确答案\s*[:：]\s*([A-Ea-e对错]+)"
 )
 
 # 中文答案 → 选项字母映射（用于判断题）
 ANSWER_CHINESE_MAP = {"对": "A", "错": "B"}
 
 # ── 答案解析中提取答案（兜底）──
-# 匹配：答案解析：D  答案解析:D
 RE_ANSWER_ANALYSIS = re.compile(
-    r"答案解析\s*[:：]\s*([A-Da-d])"
+    r"答案解析\s*[:：]\s*([A-Ea-e]+)"
 )
 
 # ── 纯垃圾行 ──
@@ -78,8 +92,14 @@ RE_GARBAGE = re.compile(
     r"\d+\s*分|"          # 10分
     r"AI讲解|"            # AI讲解
     r"答案解析.*|"        # 答案解析：D
+    r"知识点.*|"          # 知识点：xxx
     r"[-=▬—~*]{5,}"      # 分隔线
     r")\s*$"
+)
+
+# ── 填空题答案编号行（如 (1)、(2)）──
+RE_FILL_NUMBER = re.compile(
+    r"^\s*\(\s*(\d+)\s*\)\s*$"
 )
 
 # ── 旧格式题号行（兜底：当新格式不匹配时使用）──
@@ -114,14 +134,29 @@ def parse_questions(text: str) -> list[dict]:
     questions: list[dict] = []
     current: Optional[dict] = None
     seen_options: set[str] = set()
-    pending_opt_key: Optional[str] = None   # ← 新增：待填选项（字母和文字分在两行时用）
+    pending_opt_key: Optional[str] = None
 
     # ── 内部：flush 当前题 ──
     def _flush():
         nonlocal current, seen_options
         if current is None:
             return
-        for k in ("option_a", "option_b", "option_c", "option_d"):
+
+        # 填空题：将 _fill_answers 转为 correct_answer
+        if current.get("question_type") == "fill":
+            fill_data = current.pop("_fill_answers", [])
+            if not current.get("correct_answer") and fill_data:
+                fill_answers_json = []
+                for blank_lines in fill_data:
+                    if blank_lines:
+                        # 取第一行，按 ; 分隔多个可接受值
+                        answers = [a.strip() for a in blank_lines[0].split(";") if a.strip()]
+                        if answers:
+                            fill_answers_json.append(answers)
+                if fill_answers_json:
+                    current["correct_answer"] = json.dumps(fill_answers_json, ensure_ascii=False)
+
+        for k in ("option_a", "option_b", "option_c", "option_d", "option_e"):
             current.setdefault(k, "")
         if current.get("stem") and current.get("correct_answer"):
             questions.append(current)
@@ -129,12 +164,13 @@ def parse_questions(text: str) -> list[dict]:
         seen_options = set()
 
     # ── 内部：启动新题 ──
-    def _new_question(stem_text: str):
+    def _new_question(stem_text: str, qtype: str = "single"):
         nonlocal current, seen_options, pending_opt_key
         _flush()
         current = {
             "stem": stem_text.strip(),
             "correct_answer": None,
+            "question_type": qtype,
         }
         seen_options = set()
         pending_opt_key = None
@@ -142,7 +178,6 @@ def parse_questions(text: str) -> list[dict]:
     for raw_line in lines:
         line = raw_line.strip()
         if not line:
-            # ── 空行不再 flush！改为跳过，选项间的空行不会打断题目 ──
             continue
 
         # ────────────────────────────────────────────
@@ -153,7 +188,6 @@ def parse_questions(text: str) -> list[dict]:
             m = RE_ANSWER.search(line)
             if m:
                 raw = m.group(1)
-                # "正确答案:对/错" → 映射为 A/B
                 current["correct_answer"] = ANSWER_CHINESE_MAP.get(raw, raw.upper())
             else:
                 m = RE_ANSWER_OLD.match(line)
@@ -168,7 +202,7 @@ def parse_questions(text: str) -> list[dict]:
         #  2. 垃圾行 → 跳过（答案已在第 1 步提取）
         # ────────────────────────────────────────────
         if RE_GARBAGE.match(line):
-            pending_opt_key = None  # 清除挂起，避免垃圾行被当成选项文本
+            pending_opt_key = None
             continue
 
         # ────────────────────────────────────────────
@@ -176,7 +210,8 @@ def parse_questions(text: str) -> list[dict]:
         # ────────────────────────────────────────────
         m = RE_QUESTION_HEADER.match(line)
         if m:
-            _new_question(m.group(2))
+            qtype = TYPE_MAP.get(m.group(2), "single")
+            _new_question(m.group(3), qtype)
             continue
 
         # ────────────────────────────────────────────
@@ -186,14 +221,34 @@ def parse_questions(text: str) -> list[dict]:
         if m:
             candidate_stem = m.group(2).strip()
             if candidate_stem:
-                _new_question(candidate_stem)
+                _new_question(candidate_stem, "single")
                 continue
 
         if current is None:
             continue
 
         # ────────────────────────────────────────────
-        #  5. 处理"待填选项"：上一行是"A."但文字在下一行
+        #  5. 填空题答案收集
+        # ────────────────────────────────────────────
+        if current.get("question_type") == "fill" and not current.get("correct_answer"):
+            # 遇到 "正确答案" 时重置收集，只认正式答案
+            if re.search(r"^正确答案", line):
+                current["_fill_answers"] = []
+                continue
+            m = RE_FILL_NUMBER.match(line)
+            if m:
+                current.setdefault("_fill_answers", [])
+                current["_fill_answers"].append([])
+                continue
+            # 当前在收集某一空的答案文本
+            if current.get("_fill_answers"):
+                current["_fill_answers"][-1].append(line)
+                continue
+            # _fill_answers 未初始化 → 允许继续处理题干/其他
+            # （不 continue，让后续代码有机会处理）
+
+        # ────────────────────────────────────────────
+        #  6. 处理"待填选项"：上一行是"A."但文字在下一行
         # ────────────────────────────────────────────
         if pending_opt_key:
             current[pending_opt_key] = line
@@ -201,7 +256,7 @@ def parse_questions(text: str) -> list[dict]:
             continue
 
         # ────────────────────────────────────────────
-        #  6. 选项行：A. xxx / A.  (文字可空，等下一行)
+        #  7. 选项行：A. xxx / A.  (文字可空，等下一行)
         # ────────────────────────────────────────────
         m = RE_OPTION.match(line)
         if m:
@@ -211,18 +266,19 @@ def parse_questions(text: str) -> list[dict]:
             seen_options.add(opt_letter)
 
             if opt_text:
-                # 文字和字母在同一行：直接存入
                 current[key] = opt_text
                 pending_opt_key = None
             else:
-                # 文字在下一行：挂起，等下次循环填入
                 pending_opt_key = key
             continue
 
         # ────────────────────────────────────────────
-        #  7. 题干续行（还没收齐 4 个选项 + 尚未填答案时）
+        #  8. 题干续行（填空题在未开始收答案前也可续行）
         # ────────────────────────────────────────────
-        if len(seen_options) < 4 and not current.get("correct_answer"):
+        is_fill_active = (current.get("question_type") == "fill" and current.get("_fill_answers"))
+        if (len(seen_options) < 4
+                and not current.get("correct_answer")
+                and not is_fill_active):
             if not current.get("stem"):
                 current["stem"] = line
             else:
@@ -240,6 +296,11 @@ def parse_questions(text: str) -> list[dict]:
 
 def format_question_preview(q: dict) -> str:
     """格式化单道题为人类可读的预览字符串"""
+    if q.get("question_type") == "fill":
+        return (
+            f"题干：{q['stem']}\n"
+            f"答案：{q['correct_answer']}\n"
+        )
     opts = "".join(
         f"  {k.upper()}. {q.get(f'option_{k}', '')}\n"
         for k in ["a", "b", "c", "d"]
@@ -401,6 +462,63 @@ B. 错
 AI讲解
 """
 
+    # ── 测试用例 5：多选题 ──
+    sample_multi = """
+5. (多选题, 2分).以下哪些是操作系统的主要特征？
+A. 并发性
+B. 共享性
+C. 虚拟性
+D. 不确定性
+我的答案:BD;正确答案:BD;
+2分
+答案解析：BD
+AI讲解
+
+6. (多选题, 3分)以下关于进程的描述，正确的有（ ）。
+A. 进程是程序的执行过程
+B. 进程是资源分配的基本单位
+C. 进程是处理器调度的基本单位
+D. 一个进程可以包含多个线程
+我的答案:ABCD;正确答案:ABCD;
+3分
+答案解析：ABCD
+AI讲解
+"""
+
+    # ── 测试用例 6：填空题 ──
+    sample_fill = """
+31. (填空题, 2分).称为（  ），它包含（  ）
+正确答案：
+(1)
+协议;网络协议
+(2)
+语法
+
+32. (填空题).进程由（  ）组成。
+正确答案：
+(1)
+程序段;数据段;PCB
+"""
+
+    # ── 测试用例 7：多选题（选项分行）──
+    sample_multi_split = """
+7. (多选题, 2分)以下哪些是操作系统的功能？
+
+A.
+进程管理
+
+B.
+存储管理
+
+C.
+文件管理
+
+D.
+设备管理
+
+我的答案:ABCD;正确答案:ABCD;
+"""
+
     def _test_one(label, data, expect_count):
         print(f"\n{'=' * 60}")
         print(f"【{label}】")
@@ -410,13 +528,30 @@ AI讲解
         all_ok = True
         for i, q in enumerate(result, 1):
             print(f"\n─── 第 {i} 题 ───")
+            print(f"  题型：{q.get('question_type', '?')}")
             print(f"  题干：{q['stem']}")
-            for k in ["a", "b", "c", "d"]:
-                print(f"  {k.upper()}. {q.get(f'option_{k}', '')}")
-            print(f"  答案：{q['correct_answer']}")
+            qt = q.get("question_type")
+            if qt == "fill":
+                print(f"  答案：{q['correct_answer']}")
+            else:
+                for k in ["a", "b", "c", "d"]:
+                    print(f"  {k.upper()}. {q.get(f'option_{k}', '')}")
+                print(f"  答案：{q['correct_answer']}")
             try:
-                assert q["correct_answer"] in ("A", "B", "C", "D"), f"答案无效: {q['correct_answer']}"
                 assert q["stem"], "题干为空"
+                assert q.get("question_type") in ("single", "multi", "judge", "fill"), \
+                    f"题型无效: {q.get('question_type')}"
+                if qt in ("single", "multi", "judge"):
+                    assert all(c in "ABCD" for c in q["correct_answer"]), \
+                        f"答案无效: {q['correct_answer']}"
+                    assert q["correct_answer"], "答案为空"
+                elif qt == "fill":
+                    assert q["correct_answer"], "填空题答案为空"
+                    parsed = json.loads(q["correct_answer"])
+                    assert isinstance(parsed, list), "填空题答案不是 JSON 数组"
+                    for blank in parsed:
+                        assert isinstance(blank, list) and len(blank) > 0, \
+                            f"填空答案项无效: {blank}"
                 print(f"  ✅")
             except AssertionError as e:
                 print(f"  ❌ {e}")
@@ -430,9 +565,12 @@ AI讲解
     ok2 = _test_one("测试 2：简洁格式（旧格式兼容）", sample_simple, 2)
     ok3 = _test_one("测试 3：题干/选项分行格式", sample_split, 2)
     ok4 = _test_one("测试 4：判断题", sample_judge, 2)
+    ok5 = _test_one("测试 5：多选题", sample_multi, 2)
+    ok6 = _test_one("测试 6：填空题", sample_fill, 2)
+    ok7 = _test_one("测试 7：多选题（选项分行）", sample_multi_split, 1)
 
     print(f"\n{'=' * 60}")
-    if ok1 and ok2 and ok3 and ok4:
+    if ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7:
         print("全部测试通过 ✅")
     else:
         print("部分测试失败 ❌")

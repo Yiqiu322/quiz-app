@@ -66,6 +66,15 @@ body{
 .opt.e{border-color:#d99587;background:#fcf4f2}
 .opt.e .l{background:#d99587;color:#fff}
 
+/* Fill-in-blank */
+.fill-blank{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:4px 4px;flex-wrap:wrap}
+.fill-label{font-size:14px;font-weight:600;color:#5b7b7a;min-width:36px}
+.fill-input{flex:1;min-width:120px;padding:12px 14px;border:1.5px solid #e8e2da;border-radius:12px;font-size:15px;font-family:inherit;outline:none;transition:border-color .12s;background:#faf9f7}
+.fill-input:focus{border-color:#3a7d5c;background:#fff}
+.fill-input.c{border-color:#6dbf8a;background:#f2faf5}
+.fill-input.e{border-color:#d99587;background:#fcf4f2}
+.fill-hint{font-size:12px;color:#8a9ba8;margin-left:4px;width:100%}
+
 /* Feedback */
 .fb{
     margin:8px 12px 0;padding:14px 16px;border-radius:14px;
@@ -143,7 +152,7 @@ body{
 
 <script>
 const qs = {{ questions_json | tojson | safe }};
-let idx=0, ans=false, ok=0, tot=0, map=[], shf=true;
+let idx=0, ans=false, ok=0, tot=0, map=[], shf=true, selectedOptions=[];
 
 function tsf(){shf=!shf;document.getElementById('sfb').textContent='🔀 '+(shf?'开':'关')}
 function ts(){
@@ -172,19 +181,56 @@ function sq(i){
     sb.textContent=q.starred?'⭐ 星标':'☆ 星标'
     sb.className=q.starred?'on':''
 
-    let opts=Object.entries(q.options)
-    if(shf){for(let i=opts.length-1;i>0;i--){let j=Math.random()*(i+1)|0;[opts[i],opts[j]]=[opts[j],opts[i]]}}
-    map=[]
-    const oc=document.getElementById('oc');oc.innerHTML=''
-    const ls='ABCD'
-    opts.forEach(([orig,text],i)=>{
-        const dl=ls[i];map.push([dl,orig])
-        const b=document.createElement('button')
-        b.className='opt';b.innerHTML='<span class="l">'+dl+'</span><span>'+text+'</span>'
-        b.dataset.d=dl;b.onclick=()=>so(dl);oc.appendChild(b)
-    })
     document.getElementById('fb').className='fb';document.getElementById('fb').style.display='none'
-    document.getElementById('nb').className='nx'
+    const nb=document.getElementById('nb');nb.className='nx';nb.onclick=nq
+    const oc=document.getElementById('oc');oc.innerHTML=''
+
+    const qType = q.question_type || 'single';
+
+    if (qType === 'multi') {
+        // ── 多选题：复选框样式，点击切换选中 ──
+        let opts=Object.entries(q.options)
+        if(shf){for(let i=opts.length-1;i>0;i--){let j=Math.random()*(i+1)|0;[opts[i],opts[j]]=[opts[j],opts[i]]}}
+        map=[];selectedOptions=[]
+        const ls='ABCD'
+        opts.forEach(([orig,text],i)=>{
+            const dl=ls[i];map.push([dl,orig])
+            const b=document.createElement('button')
+            b.className='opt';b.innerHTML='<span class="l">'+dl+'</span><span>'+text+'</span>'
+            b.dataset.d=dl;b.onclick=()=>toggleOption(dl);oc.appendChild(b)
+        })
+        nb.textContent='✅ 确认答案';nb.onclick=submitMulti;nb.className='nx s'
+    } else if (qType === 'fill') {
+        // ── 填空题：输入框，每空对应一个输入字段 ──
+        let answers;
+        try { answers = JSON.parse(q.correct_answer); } catch(e) { answers = []; }
+        if (answers.length === 0) {
+            // Fallback: count （） pairs in stem
+            const matches = q.stem.match(/（\s*）/g)
+            const count = matches ? matches.length : 1
+            answers = new Array(count).fill([''])
+        }
+        for (let bi = 0; bi < answers.length; bi++) {
+            const div = document.createElement('div');
+            div.className = 'fill-blank';
+            div.innerHTML = '<label class="fill-label">'+(bi+1)+'. </label><input class="fill-input" id="fi_'+bi+'" type="text" placeholder="请输入答案" autocomplete="off">';
+            oc.appendChild(div);
+        }
+        nb.textContent='✅ 确认答案';nb.onclick=submitFill;nb.className='nx s'
+    } else {
+        // ── 单选题：原有行为不变 ──
+        let opts=Object.entries(q.options)
+        if(shf){for(let i=opts.length-1;i>0;i--){let j=Math.random()*(i+1)|0;[opts[i],opts[j]]=[opts[j],opts[i]]}}
+        map=[]
+        const ls='ABCD'
+        opts.forEach(([orig,text],i)=>{
+            const dl=ls[i];map.push([dl,orig])
+            const b=document.createElement('button')
+            b.className='opt';b.innerHTML='<span class="l">'+dl+'</span><span>'+text+'</span>'
+            b.dataset.d=dl;b.onclick=()=>so(dl);oc.appendChild(b)
+        })
+        nb.textContent='⏭ 下一题';nb.onclick=nq
+    }
 }
 
 function so(dl){
@@ -206,6 +252,92 @@ function so(dl){
         const nb=document.getElementById('nb')
         nb.className='nx s';nb.textContent=idx>=qs.length-1?'📊 看成绩':'⏭ 下一题'
     }).catch(()=>{ans=false;alert('提交失败，请重试')})
+}
+
+function toggleOption(dl) {
+    if(ans)return
+    const btns=document.querySelectorAll('.opt')
+    let found=false
+    btns.forEach(b=>{
+        if(b.dataset.d===dl){
+            b.classList.toggle('sel')
+            found=true
+        }
+    })
+    if(found){
+        const pos = selectedOptions.indexOf(dl)
+        if(pos === -1) selectedOptions.push(dl)
+        else selectedOptions.splice(pos, 1)
+    }
+}
+
+function submitMulti() {
+    if(ans)return
+    if(selectedOptions.length===0){alert('请至少选择一个选项');return}
+    ans=true;const q=qs[idx]
+    document.querySelectorAll('.opt').forEach(b=>b.disabled=true)
+    const answer = [...selectedOptions].sort().join('')
+    fetch('/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question_id:q.id,answer:answer})})
+    .then(r=>r.json()).then(res=>{
+        tot++;if(res.correct)ok++
+        const correctSet = res.correct_answer.split('')
+        document.querySelectorAll('.opt').forEach(b=>{
+            const dl = b.dataset.d
+            // Always highlight correct options green
+            if(correctSet.includes(dl)) b.classList.add('c')
+            // Highlight wrongly selected options red
+            else if(selectedOptions.includes(dl)) b.classList.add('e')
+        })
+        const fb=document.getElementById('fb')
+        if(res.correct){fb.className='fb s ok';fb.innerHTML='✅ 正确'}
+        else{fb.className='fb s no';fb.innerHTML='❌ 错误<br><span class="d">正确答案：'+res.correct_answer+'</span>'}
+        if(res.wrong_count>0)fb.innerHTML+='<span class="d">（已错 '+res.wrong_count+' 次）</span>'
+        const nb=document.getElementById('nb')
+        nb.onclick=nq;nb.textContent=idx>=qs.length-1?'📊 看成绩':'⏭ 下一题'
+    }).catch(()=>{ans=false;alert('提交失败，请重试')})
+}
+
+function submitFill() {
+    if(ans)return;ans=true
+    const q=qs[idx]
+    document.querySelectorAll('.fill-input').forEach(el=>el.disabled=true)
+
+    let answers
+    try { answers = JSON.parse(q.correct_answer); } catch(e) { answers = []; }
+    const totalBlanks = answers.length
+
+    let correctCount = 0
+    for(let bi = 0; bi < totalBlanks; bi++) {
+        const input = document.getElementById('fi_'+bi)
+        if(!input) continue
+        const userVal = input.value.trim()
+        const acceptable = answers[bi] || []
+        const isMatch = acceptable.some(a => a.trim() === userVal)
+        if(isMatch) correctCount++
+        input.className = 'fill-input ' + (isMatch ? 'c' : 'e')
+        if(!isMatch && acceptable.length > 0) {
+            const hint = document.createElement('div')
+            hint.className = 'fill-hint'
+            hint.textContent = '正确答案：' + acceptable.join(' / ')
+            input.parentNode.appendChild(hint)
+        }
+    }
+
+    const allCorrect = correctCount === totalBlanks
+    if(allCorrect) ok++
+    tot++
+
+    const fb=document.getElementById('fb')
+    if(allCorrect){fb.className='fb s ok';fb.innerHTML='✅ 全部正确'}
+    else{fb.className='fb s no';fb.innerHTML='❌ 错误<br><span class="d">'+correctCount+'/'+totalBlanks+' 空正确</span>'}
+    if(q.wrong_count>0)fb.innerHTML+='<span class="d">（已错 '+q.wrong_count+' 次）</span>'
+
+    // Record review on server (fill always marks as viewed)
+    fetch('/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question_id:q.id,answer:''})})
+    .catch(()=>{})
+
+    const nb=document.getElementById('nb')
+    nb.onclick=nq;nb.textContent=idx>=qs.length-1?'📊 看成绩':'⏭ 下一题'
 }
 
 function nq(){if(idx+1>=qs.length)done();else sq(idx+1)}

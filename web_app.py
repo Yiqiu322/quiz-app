@@ -34,19 +34,16 @@ def index():
     """首页：学科列表 + 总览统计"""
     subjects = db.get_subjects()
     stats = db.get_all_stats()
-    total_qs = sum(s["total"] for s in stats)
-    total_answered = sum(s["answered"] for s in stats)
-    total_correct = sum(s["correct"] for s in stats)
-    overall_acc = round(total_correct / total_answered * 100, 1) if total_answered > 0 else 0
-    return render_template(
-        "index.html",
-        subjects=subjects,
-        stats=stats,
-        total_qs=total_qs,
-        total_answered=total_answered,
-        overall_acc=overall_acc,
-        db=db,
-    )
+    # 禁止浏览器缓存 HTML，确保数据实时更新
+    from flask import make_response
+    resp = make_response(render_template("index.html", subjects=subjects, stats=stats,
+        total_qs=sum(s["total"] for s in stats),
+        total_answered=sum(s["answered"] for s in stats),
+        overall_acc=round(sum(s["correct"] for s in stats) / max(sum(s["answered"] for s in stats), 1) * 100, 1),
+        db=db))
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
 
 
 @app.route("/review/<int:subject_id>")
@@ -100,6 +97,7 @@ def review(subject_id):
             "correct_answer": q["correct_answer"],
             "wrong_count": q.get("wrong_count", 0),
             "starred": q.get("starred", 0),
+            "question_type": q.get("question_type", "single"),
         })
     # 把选项打乱信息也传给前端
     return render_template("review.html", subject_name=subject_name,
@@ -136,6 +134,7 @@ def quick10():
             "correct_answer": q["correct_answer"],
             "wrong_count": q.get("wrong_count", 0),
             "starred": q.get("starred", 0),
+            "question_type": q.get("question_type", "single"),
             "_subject_name": q.get("_subject_name", ""),
         })
     return render_template("review.html", subject_name="⚡ 快速刷 10 题",
@@ -181,7 +180,16 @@ def api_submit():
     if not question:
         return jsonify({"error": "题目不存在"}), 404
 
-    is_correct = answer == question["correct_answer"]
+    if question.get("question_type") == "multi":
+        # For multi-select, order doesn't matter
+        user_ans = "".join(sorted(answer.strip()))
+        correct_ans = "".join(sorted(question["correct_answer"].strip()))
+        is_correct = user_ans == correct_ans
+    elif question.get("question_type") == "fill":
+        # Fill-in-blank: mark as correct (manual review)
+        is_correct = True
+    else:
+        is_correct = answer == question["correct_answer"]
     correct_answer = question["correct_answer"]
 
     # 查找正确选项的文本

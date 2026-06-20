@@ -49,6 +49,7 @@ class DatabaseManager:
                     wrong_count     INTEGER NOT NULL DEFAULT 0,
                     last_wrong_at   TEXT,
                     starred         INTEGER NOT NULL DEFAULT 0,
+                    question_type   TEXT    NOT NULL DEFAULT 'single',
                     created_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
                     FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
                 );
@@ -73,11 +74,19 @@ class DatabaseManager:
                 "ALTER TABLE questions ADD COLUMN wrong_count INTEGER NOT NULL DEFAULT 0",
                 "ALTER TABLE questions ADD COLUMN last_wrong_at TEXT",
                 "ALTER TABLE questions ADD COLUMN starred INTEGER NOT NULL DEFAULT 0",
+                "ALTER TABLE questions ADD COLUMN question_type TEXT NOT NULL DEFAULT 'single'",
+                "ALTER TABLE questions ADD COLUMN option_e TEXT NOT NULL DEFAULT ''",
             ]:
                 try:
                     conn.execute(col_sql)
                 except sqlite3.OperationalError:
                     pass  # 列已存在，忽略
+
+            # ── 迁移：添加题型字段 ──
+            try:
+                conn.execute("ALTER TABLE questions ADD COLUMN question_type TEXT NOT NULL DEFAULT 'single'")
+            except sqlite3.OperationalError:
+                pass
 
     @staticmethod
     def ensure_images_dir() -> str:
@@ -175,7 +184,7 @@ class DatabaseManager:
             rows = conn.execute(
                 """SELECT id, subject_id, stem,
                           option_a, option_b, option_c, option_d,
-                          correct_answer, wrong_count, last_wrong_at, starred, created_at
+                          correct_answer, wrong_count, last_wrong_at, starred, question_type, created_at
                    FROM questions
                    WHERE subject_id = ?
                    ORDER BY id""",
@@ -217,7 +226,7 @@ class DatabaseManager:
         with self._get_conn() as conn:
             rows = conn.execute(
                 """SELECT id, subject_id, stem, option_a, option_b, option_c, option_d,
-                          correct_answer, wrong_count, last_wrong_at, starred, created_at
+                          correct_answer, wrong_count, last_wrong_at, starred, question_type, created_at
                    FROM questions
                    WHERE subject_id=? AND stem LIKE ?
                    ORDER BY id""",
@@ -283,7 +292,7 @@ class DatabaseManager:
         with self._get_conn() as conn:
             rows = conn.execute(
                 """SELECT id, subject_id, stem, option_a, option_b, option_c, option_d,
-                          correct_answer, wrong_count, last_wrong_at, starred, created_at
+                          correct_answer, wrong_count, last_wrong_at, starred, question_type, created_at
                    FROM questions
                    WHERE subject_id=? AND wrong_count>=?
                    ORDER BY wrong_count DESC, last_wrong_at DESC""",
@@ -319,7 +328,7 @@ class DatabaseManager:
         with self._get_conn() as conn:
             rows = conn.execute(
                 """SELECT id, subject_id, stem, option_a, option_b, option_c, option_d,
-                          correct_answer, wrong_count, last_wrong_at, starred, created_at
+                          correct_answer, wrong_count, last_wrong_at, starred, question_type, created_at
                    FROM questions
                    WHERE subject_id=? AND starred=1
                    ORDER BY id""",
@@ -335,7 +344,7 @@ class DatabaseManager:
             rows = conn.execute(
                 """SELECT q.id, s.name AS subject_name, q.stem,
                           q.option_a, q.option_b, q.option_c, q.option_d,
-                          q.correct_answer, q.wrong_count, q.starred, q.created_at
+                          q.correct_answer, q.wrong_count, q.starred, q.question_type, q.created_at
                    FROM questions q JOIN subjects s ON q.subject_id=s.id
                    ORDER BY s.id, q.id"""
             ).fetchall()

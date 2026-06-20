@@ -205,9 +205,12 @@ textarea{resize:vertical;min-height:200px;line-height:1.7}
             <span class="s-arrow">›</span>
         </div>
         <div class="s-meta">
-            <span>{{ st.total if st else '?' }} 题</span>
-            {% if st and st.answered > 0 %}<span>· 正确率 {{ st.accuracy }}%</span>{% endif %}
-            {% if st and st.wrong_total > 0 %}<span class="t t-red">❌{{ st.wrong_total }}</span>{% endif %}
+            <span>📝 {{ st.total if st else '?' }} 题</span>
+            {% if st and st.answered > 0 %}
+            <span>📊 已答 {{ st.answered }} 次</span>
+            <span>🎯 {{ st.accuracy }}%</span>
+            {% endif %}
+            {% if st and st.wrong_total > 0 %}<span class="t t-red">❌{{ st.wrong_total }} 道错题</span>{% endif %}
             {% if st and st.answered == 0 %}<span class="t t-gray">未开始</span>{% endif %}
         </div>
     </a>
@@ -275,6 +278,11 @@ let parsedQuestions = [];
 
 // Section toggle
 function switchSection(name) {
+    if (name === 'study') {
+        // 切回刷题页时刷新页面，确保显示最新数据
+        location.reload();
+        return;
+    }
     document.querySelectorAll('.toggle-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.section === name);
     });
@@ -434,7 +442,17 @@ function saveQuestions() {
 }
 
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(function() {});
+    navigator.serviceWorker.register('/sw.js', {updateViaCache: 'none'}).then(function(reg) {
+        if (reg.active && !navigator.serviceWorker.controller) {
+            // 新 SW 激活后刷新页面获取最新内容
+            reg.addEventListener('updatefound', function() {
+                var w = reg.installing;
+                w.addEventListener('statechange', function() {
+                    if (w.state === 'activated') window.location.reload();
+                });
+            });
+        }
+    }).catch(function() {});
 }
 </script>
 </body>
